@@ -3,22 +3,24 @@ package me.simplyzetax.limitless;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.component.type.MapIdComponent;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.item.map.MapState;
+import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 public class Limitless implements ModInitializer {
     public static final String MOD_ID = "limitless";
@@ -38,7 +40,8 @@ public class Limitless implements ModInitializer {
                 .displayName(Text.literal("§9Limitless"))
                 .entries((context, entries) -> {
                     if (EQUIPPED_ITEMS.isEmpty()) {
-                        entries.add(new ItemStack(Items.BARRIER));
+                        ItemStack stack = new ItemStack(Items.BARRIER);
+                        entries.add(stack);
                     }
 
                     // Ensure no duplicate ItemStacks are added
@@ -55,6 +58,36 @@ public class Limitless implements ModInitializer {
 
                             if (!addedKeys.contains(uniqueKey)) {
                                 ItemStack singleItemStack = itemStack.copy();
+
+                                //NbtElement nbtElement = itemStack.toNbt(wrapperLookup);
+
+                                //ItemStack.fromNbt(wrapperLookup, nbtElement); // Set the NBT data
+
+                                Text text = Text.literal("Hello world");
+                                List<Text> textList = Collections.singletonList(text);
+
+
+                                Item.TooltipContext tooltipContext = new Item.TooltipContext() {
+
+                                    @Nullable
+                                    @Override
+                                    public RegistryWrapper.WrapperLookup getRegistryLookup() {
+                                        return null;
+                                    }
+
+                                    @Override
+                                    public float getUpdateTickRate() {
+                                        return 0;
+                                    }
+
+                                    @Nullable
+                                    @Override
+                                    public MapState getMapState(MapIdComponent mapIdComponent) {
+                                        return null;
+                                    }
+                                };
+
+                                singleItemStack.getItem().appendTooltip(singleItemStack, tooltipContext, textList, TooltipType.BASIC);
                                 singleItemStack.setCount(1); // Ensure stack size is 1
                                 entries.add(singleItemStack);
                                 addedKeys.add(uniqueKey);
