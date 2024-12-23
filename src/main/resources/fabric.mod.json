@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "limitless",
+  "version": "${version}",
+  "name": "limitless",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/limitless/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "me.simplyzetax.limitless.client.LimitlessClient"
+    ],
+    "main": [
+      "me.simplyzetax.limitless.Limitless"
+    ]
+  },
+  "mixins": [
+    "limitless.mixins.json",
+    "limitless.client.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
