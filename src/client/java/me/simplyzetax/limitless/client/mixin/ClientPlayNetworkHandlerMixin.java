@@ -26,18 +26,17 @@ public class ClientPlayNetworkHandlerMixin {
 
     @Inject(method = "channelRead0", at = @At("HEAD"))
     private void onChannelRead(ChannelHandlerContext context, Packet<?> packet, CallbackInfo ci) {
-        // Check if it's our equipment update packet
         if (packet instanceof EntityEquipmentUpdateS2CPacket eqPacket) {
-            // Retrieve the item list
             List<Pair<EquipmentSlot, ItemStack>> list = eqPacket.getEquipmentList();
 
-            // Do whatever you want with those items
             for (Pair<EquipmentSlot, ItemStack> pair : list) {
                 ItemStack equippedStack = pair.getSecond();
                 if (!equippedStack.isEmpty()) {
-                    // Example: add to a "Limitless" custom tab set
-                    Limitless.LOGGER.info("Adding item to Limitless tab: {}", equippedStack.getItem().getTranslationKey());
-                    Limitless.EQUIPPED_ITEMS.add(equippedStack.getItem());
+                    // Add the full ItemStack to EQUIPPED_ITEMS
+                    Limitless.LOGGER.info("Adding item with attributes to Limitless tab: {}", equippedStack.getItem().getTranslationKey());
+
+                    // Copy the ItemStack to ensure immutability
+                    Limitless.EQUIPPED_ITEMS.add(equippedStack.copy());
 
                     MinecraftClient client = MinecraftClient.getInstance();
                     if (client.currentScreen instanceof CreativeInventoryScreen) {
@@ -57,3 +56,4 @@ public class ClientPlayNetworkHandlerMixin {
         }
     }
 }
+

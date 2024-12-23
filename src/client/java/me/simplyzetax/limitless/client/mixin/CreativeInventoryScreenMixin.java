@@ -18,7 +18,7 @@ public class CreativeInventoryScreenMixin {
         if (tab == Limitless.LIMITLESS_ITEM_GROUP) {
             // Refresh the creative inventory for the Limitless tab
             Limitless.EQUIPPED_ITEMS.forEach(item -> {
-                System.out.println("Refreshing Limitless tab with: " + item.getTranslationKey());
+                System.out.println("Refreshing Limitless tab with: " + item.getItem().getTranslationKey());
             });
         }
     }

@@ -5,7 +5,8 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "ClientPlayNetworkHandlerMixin",
-    "CreativeInventoryScreenMixin"
+    "CreativeInventoryScreenMixin",
+    "PlayerListHudMixin"
   ],
   "injectors": {
     "defaultRequire": 1
