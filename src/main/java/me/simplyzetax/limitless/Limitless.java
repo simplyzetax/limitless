@@ -12,6 +12,8 @@ import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.text.ClickEvent;
+import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -82,32 +84,40 @@ public class Limitless implements ModInitializer {
         ItemStack singleItemStack = originalStack.copy();
         singleItemStack.setCount(1);
 
-        // Adding custom tooltip by setting a custom display name or using other NBT tags if necessary
-        // Directly modifying tooltips programmatically isn't straightforward; consider using item attributes or custom items
-
-        // Example: Adding a custom display name with tooltip information
+        // Adding the display name
         MutableText displayName = Text.literal(originalStack.getName().getString())
-        .styled(style -> style.withColor(0x5090D9).withItalic(false));
+                .styled(style -> style.withColor(0x5090D9).withItalic(false)
+                                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "help"))); // Add click event to lore
 
-        // Create a list to hold the lore
-        DefaultedList<Text> lore = DefaultedList.of();
 
-        List<String> loreLines = new ArrayList<>();
+                        // Retrieve existing lore and filter duplicates
+        LoreComponent loreComponent = singleItemStack.getOrDefault(DataComponentTypes.LORE, LoreComponent.DEFAULT);
+        List<Text> lore = new ArrayList<>(loreComponent.lines());
 
-        loreLines.add("§7This is a custom item with a custom tooltip.");
+        // Ensure only one "Obtained from:" entry exists
+        lore.removeIf(line -> line.getString().startsWith("§7Obtained from:"));
+        lore.removeIf(line -> line.getString().startsWith("§7Obtained from:"));
+        lore.add(Text.literal("§7Obtained from: ")
+                .append(Text.literal(getEntityName(singleItemStack))
+                        .styled(style -> style.withColor(0x5090D9))));
 
-        // Add each line of lore with desired formatting
-        for (String line : loreLines) {
-            lore.add(Text.literal(line).formatted(Formatting.GRAY, Formatting.ITALIC));
-        }
-
-        LoreComponent loreComponent = new LoreComponent(lore);
-
-        singleItemStack.set(DataComponentTypes.LORE, loreComponent);
+        singleItemStack.set(DataComponentTypes.LORE, new LoreComponent(lore));
         singleItemStack.set(DataComponentTypes.CUSTOM_NAME, displayName);
 
-
         return singleItemStack;
+    }
+
+    private String getEntityName(ItemStack stack) {
+        // Extract the entity name from the lore if present
+        LoreComponent lore = stack.get(DataComponentTypes.LORE);
+        if (lore != null) {
+            for (Text line : lore.lines()) {
+                if (line.getString().startsWith("§7Obtained from:")) {
+                    return line.getString().replace("§7Obtained from: ", "").trim();
+                }
+            }
+        }
+        return "Unknown";
     }
 
     private void registerItemGroup() {
