@@ -2,20 +2,21 @@ package me.simplyzetax.limitless;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.component.type.MapIdComponent;
+import net.minecraft.component.Component;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.LoreComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.item.map.MapState;
-import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.collection.DefaultedList;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,89 +24,97 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 public class Limitless implements ModInitializer {
-    public static final String MOD_ID = "limitless";
+    private static final String MOD_ID = "limitless";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-
-    // We'll store unique Items here that we've "seen" from any player
     public static final Set<ItemStack> EQUIPPED_ITEMS = new LinkedHashSet<>();
-
     public static ItemGroup LIMITLESS_ITEM_GROUP;
 
     @Override
     public void onInitialize() {
         LOGGER.info("Initializing Limitless mod...");
+        initializeItemGroup();
+        registerItemGroup();
+        LOGGER.info("Limitless item group registered successfully!");
+    }
 
+    private void initializeItemGroup() {
         LIMITLESS_ITEM_GROUP = FabricItemGroup.builder()
                 .icon(() -> new ItemStack(Items.FLOW_ARMOR_TRIM_SMITHING_TEMPLATE))
                 .displayName(Text.literal("§9Limitless"))
                 .entries((context, entries) -> {
                     if (EQUIPPED_ITEMS.isEmpty()) {
-                        ItemStack stack = new ItemStack(Items.BARRIER);
-                        entries.add(stack);
+                        entries.add(new ItemStack(Items.BARRIER));
+                        return;
                     }
 
-                    // Ensure no duplicate ItemStacks are added
                     Set<String> addedKeys = new HashSet<>();
-
-                    // Obtain the WrapperLookup from the context
                     RegistryWrapper.WrapperLookup wrapperLookup = context.lookup();
 
-                    Limitless.EQUIPPED_ITEMS.forEach(itemStack -> {
+                    for (ItemStack itemStack : EQUIPPED_ITEMS) {
                         try {
-                            // Use toNbt() to generate a unique key
-                            String nbtData = itemStack.toNbt(wrapperLookup).toString(); // Convert the full stack to NBT string
-                            String uniqueKey = itemStack.getItem().toString() + nbtData;
-
-                            if (!addedKeys.contains(uniqueKey)) {
-                                ItemStack singleItemStack = itemStack.copy();
-
-                                //NbtElement nbtElement = itemStack.toNbt(wrapperLookup);
-
-                                //ItemStack.fromNbt(wrapperLookup, nbtElement); // Set the NBT data
-
-                                Text text = Text.literal("Hello world");
-                                List<Text> textList = Collections.singletonList(text);
-
-
-                                Item.TooltipContext tooltipContext = new Item.TooltipContext() {
-
-                                    @Nullable
-                                    @Override
-                                    public RegistryWrapper.WrapperLookup getRegistryLookup() {
-                                        return null;
-                                    }
-
-                                    @Override
-                                    public float getUpdateTickRate() {
-                                        return 0;
-                                    }
-
-                                    @Nullable
-                                    @Override
-                                    public MapState getMapState(MapIdComponent mapIdComponent) {
-                                        return null;
-                                    }
-                                };
-
-                                singleItemStack.getItem().appendTooltip(singleItemStack, tooltipContext, textList, TooltipType.BASIC);
-                                singleItemStack.setCount(1); // Ensure stack size is 1
-                                entries.add(singleItemStack);
-                                addedKeys.add(uniqueKey);
-                            }
+                            addUniqueItemStack(itemStack, addedKeys, entries, wrapperLookup);
                         } catch (Exception e) {
-                            e.printStackTrace(); // Log any errors
+                            LOGGER.error("Error processing ItemStack: {}", itemStack, e);
                         }
-                    });
+                    }
                 })
                 .build();
+    }
+
+    private void addUniqueItemStack(ItemStack itemStack, Set<String> addedKeys, ItemGroup.Entries entries, RegistryWrapper.WrapperLookup wrapperLookup) {
+        // Generate a unique key based on item ID and NBT data
+        String uniqueKey = generateUniqueKey(itemStack, wrapperLookup);
+
+        if (addedKeys.add(uniqueKey)) { // Adds to set and checks if it was not already present
+            ItemStack singleItemStack = createSingleItemStackWithTooltip(itemStack);
+            entries.add(singleItemStack);
+        }
+    }
+
+    private String generateUniqueKey(ItemStack itemStack, RegistryWrapper.WrapperLookup wrapperLookup) {
+        // Use Registry IDs for more reliable uniqueness
+        Identifier itemId = Registries.ITEM.getId(itemStack.getItem());
+        String nbtData = itemStack.toNbt(wrapperLookup).toString();
+        return itemId.toString() + ":" + nbtData;
+    }
+
+    private ItemStack createSingleItemStackWithTooltip(ItemStack originalStack) {
+        ItemStack singleItemStack = originalStack.copy();
+        singleItemStack.setCount(1);
+
+        // Adding custom tooltip by setting a custom display name or using other NBT tags if necessary
+        // Directly modifying tooltips programmatically isn't straightforward; consider using item attributes or custom items
+
+        // Example: Adding a custom display name with tooltip information
+        MutableText displayName = Text.literal(originalStack.getName().getString())
+        .styled(style -> style.withColor(0x5090D9).withItalic(false));
+
+        // Create a list to hold the lore
+        DefaultedList<Text> lore = DefaultedList.of();
+
+        List<String> loreLines = new ArrayList<>();
+
+        loreLines.add("§7This is a custom item with a custom tooltip.");
+
+        // Add each line of lore with desired formatting
+        for (String line : loreLines) {
+            lore.add(Text.literal(line).formatted(Formatting.GRAY, Formatting.ITALIC));
+        }
+
+        LoreComponent loreComponent = new LoreComponent(lore);
+
+        singleItemStack.set(DataComponentTypes.LORE, loreComponent);
+        singleItemStack.set(DataComponentTypes.CUSTOM_NAME, displayName);
 
 
+        return singleItemStack;
+    }
+
+    private void registerItemGroup() {
         Registry.register(
                 Registries.ITEM_GROUP,
-                Identifier.of(MOD_ID, "main"),
+                Identifier.of(MOD_ID, "main"), // Keeping Identifier usage as is
                 LIMITLESS_ITEM_GROUP
         );
-
-        LOGGER.info("Limitless tab registered successfully!");
     }
 }
