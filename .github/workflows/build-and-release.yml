@@ -3,54 +3,49 @@ name: Build and Release Fabric Mod
 on:
   push:
     branches:
-      - master # Trigger on pushes to the main branch (adjust branch name if needed)
+      - '**' # Trigger on pushes to any branch
 
 jobs:
-  build-and-release:
+  build:
+    name: Build and Release
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout the repository
-      - name: Checkout Repository
+      # Checkout the code
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Set up JDK 21
-      - name: Set up JDK 21
+      # Set up JDK
+      - name: Set up JDK
         uses: actions/setup-java@v3
         with:
+          java-version: '21' # Use Java 21 for Fabric
           distribution: 'temurin'
-          java-version: '21'
-          cache: 'gradle'
 
-      # 3. Make gradlew executable
-      - name: Set gradlew executable
+      # Grant execute permissions for Gradle wrapper
+      - name: Grant execute permissions for Gradle wrapper
         run: chmod +x ./gradlew
 
-      # 4. Build the mod using Gradle
-      - name: Build Mod
+      # Build the project
+      - name: Build project
         run: ./gradlew build
 
-      # 5. Locate the output JAR file
-      - name: Locate Built JAR
-        id: locate_jar
-        run: |
-          JAR_PATH=$(find ./build/libs -type f -name 'limitless-*.jar' | head -n 1)
-          if [ -z "$JAR_PATH" ]; then
-            echo "Error: No JAR file matching 'limitless-*.jar' found."
-            exit 1
-          fi
-          echo "JAR_PATH=$JAR_PATH" >> $GITHUB_ENV
-          echo "Found JAR file: $JAR_PATH"
+      # Upload build artifact (optional)
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-jar
+          path: build/libs/limitless-*.jar
 
-      # 6. Create a GitHub Release
+      # Create GitHub Release
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.sha }}  # Use commit SHA as tag
-          release_name: "Build for Commit ${{ github.sha }}"
+          tag_name: v${{ github.run_number }} # Generate a tag based on the workflow run number
+          release_name: "Build for Run ${{ github.run_number }}"
           body: |
             ### Automatic Build
             This release was triggered by a push to the repository.
@@ -60,13 +55,13 @@ jobs:
           draft: false
           prerelease: true
 
-      # 7. Upload the JAR file to the release
+      # Upload release asset
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ env.JAR_PATH }}
-          asset_name: limitless-${{ github.sha }}.jar
+          asset_path: build/libs/limitless-*.jar
+          asset_name: limitless-${{ github.run_number }}.jar
           asset_content_type: application/java-archive
