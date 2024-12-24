@@ -3,9 +3,11 @@ package me.simplyzetax.limitless.client.mixin;
 import com.mojang.datafixers.util.Pair;
 import io.netty.channel.ChannelHandlerContext;
 import me.simplyzetax.limitless.Limitless;
+import me.simplyzetax.limitless.client.config.ClientConfig;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.component.DataComponentTypes;
@@ -13,6 +15,7 @@ import net.minecraft.component.type.LoreComponent;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.ClientConnection;
@@ -63,10 +66,23 @@ public class ClientPlayNetworkHandlerMixin {
     @Inject(method = "channelRead0", at = @At("HEAD"))
     private void onChannelRead(ChannelHandlerContext context, Packet<?> packet, CallbackInfo ci) {
         if (packet instanceof EntityEquipmentUpdateS2CPacket eqPacket) {
+
+            if(!ClientConfig.EnableStealing) {
+                Limitless.LOGGER.info("Skipping entity equipment update as stealing is disabled");
+                return;
+            }
+
             MinecraftClient client = MinecraftClient.getInstance();
 
             List<Pair<EquipmentSlot, ItemStack>> equipmentList = eqPacket.getEquipmentList();
             Entity entity = client.world.getEntityById(eqPacket.getEntityId());
+
+            // Check if the entity is a player
+            if (ClientConfig.OnlyStealPlayerItems && !(entity instanceof PlayerEntity)) {
+                Limitless.LOGGER.info("Skipping entity '{}' as it is not a player", entity.getDisplayName());
+                return;
+            }
+
             String entityName = entity != null ? entity.getDisplayName().getString() : "Unknown";
 
             boolean foundNewItem = false;
@@ -95,15 +111,18 @@ public class ClientPlayNetworkHandlerMixin {
             }
 
             // Refresh the creative inventory screen if needed
-            if (foundNewItem && client.currentScreen instanceof CreativeInventoryScreen) {
+            if (foundNewItem) {
                 Limitless.LOGGER.info("Scheduling creative screen refresh for new items...");
                 client.execute(() -> {
                     ClientPlayerEntity player = client.player;
                     net.minecraft.resource.featuretoggle.FeatureSet enabledFeatures = client.world.getEnabledFeatures();
                     boolean operatorTabEnabled = player.hasPermissionLevel(2);
 
+                    Screen currentScreen = client.currentScreen;
+
                     client.setScreen(null);
                     client.setScreen(new CreativeInventoryScreen(player, enabledFeatures, operatorTabEnabled));
+                    client.setScreen(currentScreen);
                 });
             }
         }
