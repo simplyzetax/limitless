@@ -90,17 +90,33 @@ public class TestGUI extends BaseOwoScreen<FlowLayout> {
                         .tooltip(Text.literal("Toggles item stealing").styled(style -> style.withColor(Formatting.GRAY))) // Add tooltip
         );
 
+        rootComponent.child(
+                Components.button(
+                                // Initialize the button text with the current value of the config
+                                Text.literal("Refresh GUI")
+                                        .styled(style -> style.withColor(Formatting.GREEN)),
+                                button -> {
+                                    // Toggle the configuration value
+                                    Limitless.LOGGER.info("Refreshed all items");
+
+                                    updateCreativeInventoryScreen();
+                                }
+                        )
+                        .horizontalSizing(Sizing.fixed(150)) // Adjust the button width as needed
+                        .tooltip(Text.literal("Toggles item stealing").styled(style -> style.withColor(Formatting.GRAY))) // Add tooltip
+        );
+
     }
 
     public void updateCreativeInventoryScreen() {
         MinecraftClient client = MinecraftClient.getInstance();
         ClientPlayerEntity player = client.player;
         if (player == null) return;
+
         net.minecraft.resource.featuretoggle.FeatureSet enabledFeatures = client.world.getEnabledFeatures();
-        boolean operatorTabEnabled = player.hasPermissionLevel(2);
 
         client.setScreen(null);
-        client.setScreen(new CreativeInventoryScreen(player, enabledFeatures, operatorTabEnabled));
+        client.setScreen(new CreativeInventoryScreen(player, enabledFeatures, true));
         client.setScreen(this);
     }
 }

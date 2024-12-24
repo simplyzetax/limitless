@@ -4,6 +4,8 @@
 
 **Limitless** redefines creativity in Minecraft with a dynamic creative inventory tab that updates in real-time based on players' equipped items. Explore endless possibilities with a seamless creative experience!
 
+### TODO: Fix the Creative GUI not updating when the player is not an operator.
+
 ---
 
 ## Features
