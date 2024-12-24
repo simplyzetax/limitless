@@ -3,7 +3,7 @@ name: Build and Release Fabric Mod
 on:
   push:
     branches:
-      - main # Trigger on pushes to the main branch (adjust branch name if needed)
+      - master # Trigger on pushes to the main branch (adjust branch name if needed)
 
 jobs:
   build-and-release:
