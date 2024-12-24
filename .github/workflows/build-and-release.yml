@@ -3,7 +3,7 @@ name: Build and Release Fabric Mod
 on:
   push:
     branches:
-      - '**' # Trigger on pushes to any branch
+      - '**'
 
 jobs:
   build:
@@ -11,57 +11,48 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the code
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Set up JDK
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          java-version: '21' # Use Java 21 for Fabric
+          java-version: '21'
           distribution: 'temurin'
 
-      # Grant execute permissions for Gradle wrapper
       - name: Grant execute permissions for Gradle wrapper
         run: chmod +x ./gradlew
 
-      # Build the project
       - name: Build project
         run: ./gradlew build
 
-      # Upload build artifact (optional)
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: build-jar
-          path: build/libs/limitless-*.jar
+          path: build/libs/limitless-1.0-SNAPSHOT.jar  # Update this to match the actual jar file name
 
-      # Create GitHub Release
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ github.run_number }} # Generate a tag based on the workflow run number
+          tag_name: v${{ github.run_number }}
           release_name: "Build for Run ${{ github.run_number }}"
           body: |
             ### Automatic Build
-            This release was triggered by a push to the repository.
-
             **Commit:** ${{ github.sha }}
             **Branch:** ${{ github.ref_name }}
           draft: false
           prerelease: true
 
-      # Upload release asset
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/libs/limitless-*.jar
+          asset_path: build/libs/limitless-1.0-SNAPSHOT.jar  # Match this to the actual jar name
           asset_name: limitless-${{ github.run_number }}.jar
           asset_content_type: application/java-archive
