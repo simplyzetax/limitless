@@ -2,23 +2,21 @@ package me.simplyzetax.limitless;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
-import net.minecraft.component.Component;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
-import net.minecraft.item.Item;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.text.ClickEvent;
-import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.collection.DefaultedList;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +29,9 @@ public class Limitless implements ModInitializer {
     public static final Set<ItemStack> EQUIPPED_ITEMS = new LinkedHashSet<>();
     public static ItemGroup LIMITLESS_ITEM_GROUP;
 
+    private static final String OBTAINED_FROM_KEY = "ObtainedFrom";
+    private static final String OBTAINED_TIME_KEY = "ObtainedTime";
+
     @Override
     public void onInitialize() {
         LOGGER.info("Initializing Limitless mod...");
@@ -39,6 +40,9 @@ public class Limitless implements ModInitializer {
         LOGGER.info("Limitless item group registered successfully!");
     }
 
+    /**
+     * Initializes the Limitless item group.
+     */
     private void initializeItemGroup() {
         LIMITLESS_ITEM_GROUP = FabricItemGroup.builder()
                 .icon(() -> new ItemStack(Items.FLOW_ARMOR_TRIM_SMITHING_TEMPLATE))
@@ -63,8 +67,16 @@ public class Limitless implements ModInitializer {
                 .build();
     }
 
+    /**
+     * Adds a unique ItemStack to the creative tab entries.
+     *
+     * @param itemStack     The ItemStack to add.
+     * @param addedKeys     The set of unique keys to track duplicates.
+     * @param entries       The creative tab entries.
+     * @param wrapperLookup The registry wrapper lookup.
+     */
     private void addUniqueItemStack(ItemStack itemStack, Set<String> addedKeys, ItemGroup.Entries entries, RegistryWrapper.WrapperLookup wrapperLookup) {
-        // Generate a unique key based on item ID and NBT data
+        // Generate a unique key based on item ID and OBTAINED_FROM component
         String uniqueKey = generateUniqueKey(itemStack, wrapperLookup);
 
         if (addedKeys.add(uniqueKey)) { // Adds to set and checks if it was not already present
@@ -73,57 +85,107 @@ public class Limitless implements ModInitializer {
         }
     }
 
+    /**
+     * Generates a unique key for an ItemStack based on its registry ID and the obtained entity name.
+     *
+     * @param itemStack     The ItemStack.
+     * @param wrapperLookup The registry wrapper lookup.
+     * @return The unique key as a String.
+     */
     private String generateUniqueKey(ItemStack itemStack, RegistryWrapper.WrapperLookup wrapperLookup) {
-        // Use Registry IDs for more reliable uniqueness
+        // Use Registry IDs and OBTAINED_FROM component for more reliable uniqueness
         Identifier itemId = Registries.ITEM.getId(itemStack.getItem());
-        String nbtData = itemStack.toNbt(wrapperLookup).toString();
-        return itemId.toString() + ":" + nbtData;
+        String obtainedFrom = getEntityName(itemStack);
+        return itemId.toString() + ":" + obtainedFrom;
     }
 
+    /**
+     * Creates a single ItemStack with updated lore and display name for the creative tab.
+     *
+     * @param originalStack The original ItemStack.
+     * @return The modified ItemStack for display.
+     */
     private ItemStack createSingleItemStackWithTooltip(ItemStack originalStack) {
         ItemStack singleItemStack = originalStack.copy();
         singleItemStack.setCount(1);
 
-        // Adding the display name
+        // Retrieve the stored entity and time name from CUSTOM_DATA
+        String obtainedFromEntity = getEntityName(singleItemStack);
+        String obtainedTime = getObtainedTime(singleItemStack);
+
         MutableText displayName = Text.literal(originalStack.getName().getString())
-                .styled(style -> style.withColor(0x5090D9).withItalic(false)
-                                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "help"))); // Add click event to lore
+                .styled(style -> style.withColor(0x5090D9).withItalic(false));
 
-
-                        // Retrieve existing lore and filter duplicates
+        // Update lore with the obtained entity name
         LoreComponent loreComponent = singleItemStack.getOrDefault(DataComponentTypes.LORE, LoreComponent.DEFAULT);
         List<Text> lore = new ArrayList<>(loreComponent.lines());
 
-        // Ensure only one "Obtained from:" entry exists
-        lore.removeIf(line -> line.getString().startsWith("§7Obtained from:"));
-        lore.removeIf(line -> line.getString().startsWith("§7Obtained from:"));
+        // Add the "Obtained from:" line
         lore.add(Text.literal("§7Obtained from: ")
-                .append(Text.literal(getEntityName(singleItemStack))
-                        .styled(style -> style.withColor(0x5090D9))));
+                .append(Text.literal(obtainedFromEntity).styled(style -> style.withColor(Formatting.GOLD)
+                        .withItalic(false)
+                )));
 
+        // Add the new "Obtained time:" line
+        lore.add(Text.literal("§7Obtained time: ")
+                .append(Text.literal(new Date().toString()).styled(style -> style.withColor(Formatting.GOLD)
+                        .withItalic(false)
+                )));
+
+        lore.add(Text.literal(""));
+
+        lore.add(Text.literal("§7These items will §creset §7on a game restart."));
+
+        // Set the updated lore
         singleItemStack.set(DataComponentTypes.LORE, new LoreComponent(lore));
+
+        // Set the custom display name
         singleItemStack.set(DataComponentTypes.CUSTOM_NAME, displayName);
 
         return singleItemStack;
     }
 
+    /**
+     * Retrieves the entity name from the CUSTOM_DATA component of the ItemStack.
+     *
+     * @param stack The ItemStack to retrieve the name from.
+     * @return The name of the entity, or "Unknown" if not set.
+     */
     private String getEntityName(ItemStack stack) {
-        // Extract the entity name from the lore if present
-        LoreComponent lore = stack.get(DataComponentTypes.LORE);
-        if (lore != null) {
-            for (Text line : lore.lines()) {
-                if (line.getString().startsWith("§7Obtained from:")) {
-                    return line.getString().replace("§7Obtained from: ", "").trim();
-                }
+        // Retrieve the CUSTOM_DATA component
+        @Nullable NbtComponent customDataComponent = stack.get(DataComponentTypes.CUSTOM_DATA);
+        if (customDataComponent != null) {
+            NbtCompound customData = customDataComponent.getNbt();
+            if (customData != null && customData.contains(OBTAINED_FROM_KEY, NbtElement.STRING_TYPE)) {
+                return customData.getString(OBTAINED_FROM_KEY);
             }
+        } else {
+            LOGGER.warn("Missing CUSTOM_DATA component for ItemStack: {}", stack);
         }
         return "Unknown";
     }
 
+    private String getObtainedTime(ItemStack stack) {
+        // Retrieve the CUSTOM_DATA component
+        @Nullable NbtComponent customDataComponent = stack.get(DataComponentTypes.CUSTOM_DATA);
+        if (customDataComponent != null) {
+            NbtCompound customData = customDataComponent.getNbt();
+            if (customData != null && customData.contains(OBTAINED_TIME_KEY, NbtElement.STRING_TYPE)) {
+                return customData.getString(OBTAINED_TIME_KEY);
+            }
+        } else {
+            LOGGER.warn("Missing CUSTOM_DATA component for ItemStack: {}", stack);
+        }
+        return "Unknown";
+    }
+
+    /**
+     * Registers the Limitless item group.
+     */
     private void registerItemGroup() {
         Registry.register(
                 Registries.ITEM_GROUP,
-                Identifier.of(MOD_ID, "main"), // Keeping Identifier usage as is
+                Identifier.of(MOD_ID, "main"),
                 LIMITLESS_ITEM_GROUP
         );
     }
