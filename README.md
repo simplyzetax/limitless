@@ -35,7 +35,7 @@
 
 - Equip items as usual.  
 - Access the **Limitless** tab in Creative Inventory to view unique equipped items.  
-> **Note**: Items without equipped instances show a placeholder (Barrier block).
+> **Note**: If there have not been any items equipped, the tab will only contain a barrier block.
 
 ---
 
