@@ -11,7 +11,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import me.simplyzetax.limitless.network.RefreshCreativePayload;
-import me.simplyzetax.limitless.shulkerbox.ShulkerBoxManager;
 import me.simplyzetax.limitless.stealer.LimitlessItemGroupManager;
 
 public class Limitless implements ModInitializer {
@@ -24,7 +23,6 @@ public class Limitless implements ModInitializer {
         LOGGER.info("Initializing Limitless mod...");
 
         LimitlessItemGroupManager.initialize();
-        ShulkerBoxManager.initialize();
 
         PayloadTypeRegistry.playS2C().register(
                 RefreshCreativePayload.ID,

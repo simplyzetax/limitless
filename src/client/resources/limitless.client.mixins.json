@@ -6,9 +6,7 @@
   "client": [
     "ClientPlayNetworkHandlerMixin",
     "PlayerListHudMixin",
-    "EntityGlowMixin",
-    "ShulkerBoxBlockEntityMixin",
-    "ShulkerBoxPlacementMixin"
+    "EntityGlowMixin"
   ],
   "injectors": {
     "defaultRequire": 1
