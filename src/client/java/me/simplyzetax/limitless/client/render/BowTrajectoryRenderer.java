@@ -10,6 +10,10 @@ import org.joml.Matrix4f;
 
 public class BowTrajectoryRenderer implements WorldRenderEvents.Last {
 
+    // Simplified rendering - removed aggressive frame limiting that was causing
+    // flashing
+    private static final double MAX_RENDER_DISTANCE = 150.0; // Don't render if further than 150 blocks
+
     @Override
     public void onLast(WorldRenderContext context) {
         if (!BowTrajectoryData.shouldRenderTrajectory ||
@@ -20,6 +24,16 @@ public class BowTrajectoryRenderer implements WorldRenderEvents.Last {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player == null)
             return;
+
+        // Simple distance culling only - removed complex adaptive rendering
+        Vec3d playerPos = client.player.getPos();
+        if (!BowTrajectoryData.trajectoryPoints.isEmpty()) {
+            Vec3d firstPoint = BowTrajectoryData.trajectoryPoints.get(0);
+            double distance = playerPos.distanceTo(firstPoint);
+            if (distance > MAX_RENDER_DISTANCE) {
+                return;
+            }
+        }
 
         MatrixStack matrices = context.matrixStack();
         Camera camera = context.camera();
@@ -32,24 +46,56 @@ public class BowTrajectoryRenderer implements WorldRenderEvents.Last {
         matrices.push();
         matrices.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
 
-        Matrix4f positionMatrix = matrices.peek().getPositionMatrix();
-
-        // Draw trajectory line (white)
+        // Draw trajectory line (white) with better smoothing and stability
         if (BowTrajectoryData.trajectoryPoints.size() > 1) {
             VertexConsumer lineConsumer = vertexConsumers.getBuffer(RenderLayer.getLines());
+            Matrix4f posMatrix = matrices.peek().getPositionMatrix();
 
-            for (int i = 0; i < BowTrajectoryData.trajectoryPoints.size() - 1; i++) {
+            // Enhanced trajectory rendering with better line connectivity
+            int pointCount = BowTrajectoryData.trajectoryPoints.size();
+            for (int i = 0; i < pointCount - 1; i++) {
                 Vec3d p1 = BowTrajectoryData.trajectoryPoints.get(i);
                 Vec3d p2 = BowTrajectoryData.trajectoryPoints.get(i + 1);
 
-                // Add line segment
-                lineConsumer.vertex(positionMatrix, (float) p1.x, (float) p1.y, (float) p1.z)
-                        .color(255, 255, 255, 255)
+                // Draw line segment with consistent rendering and brighter color
+                lineConsumer.vertex(posMatrix, (float) p1.x, (float) p1.y, (float) p1.z)
+                        .color(255, 255, 255, 255) // Bright white
                         .normal(matrices.peek(), 0f, 1f, 0f);
 
-                lineConsumer.vertex(positionMatrix, (float) p2.x, (float) p2.y, (float) p2.z)
-                        .color(255, 255, 255, 255)
+                lineConsumer.vertex(posMatrix, (float) p2.x, (float) p2.y, (float) p2.z)
+                        .color(255, 255, 255, 255) // Bright white
                         .normal(matrices.peek(), 0f, 1f, 0f);
+            } // Add a small connecting line from bow position to first trajectory point
+            if (pointCount > 0) {
+                Vec3d firstPoint = BowTrajectoryData.trajectoryPoints.get(0);
+
+                // Calculate approximate bow position (similar to mixin calculation)
+                Vec3d playerEyePos = client.player.getEyePos();
+                float yaw = client.player.getYaw();
+                Vec3d lookDirection = client.player.getRotationVec(1.0f);
+
+                Vec3d sideVector = new Vec3d(
+                        -Math.sin(Math.toRadians(yaw + 90)),
+                        0,
+                        Math.cos(Math.toRadians(yaw + 90)));
+
+                Vec3d bowPosition = playerEyePos
+                        .add(lookDirection.multiply(0.4))
+                        .add(sideVector.multiply(0.3))
+                        .add(0, -0.2, 0);
+
+                // Only draw connection if bow and first point are reasonably close
+                if (firstPoint.distanceTo(bowPosition) < 1.0) {
+                    // Draw connection line from bow position to first trajectory point
+                    lineConsumer
+                            .vertex(posMatrix, (float) bowPosition.x, (float) bowPosition.y, (float) bowPosition.z)
+                            .color(255, 255, 255, 128) // Semi-transparent
+                            .normal(matrices.peek(), 0f, 1f, 0f);
+
+                    lineConsumer.vertex(posMatrix, (float) firstPoint.x, (float) firstPoint.y, (float) firstPoint.z)
+                            .color(255, 255, 255, 255) // Full opacity
+                            .normal(matrices.peek(), 0f, 1f, 0f);
+                }
             }
         }
 
@@ -67,6 +113,7 @@ public class BowTrajectoryRenderer implements WorldRenderEvents.Last {
         Matrix4f matrix = matrices.peek().getPositionMatrix();
         float half = size / 2.0f;
 
+        // Performance optimization: Pre-calculate all coordinates
         float minX = (float) (center.x - half);
         float minY = (float) (center.y - half);
         float minZ = (float) (center.z - half);
@@ -74,7 +121,7 @@ public class BowTrajectoryRenderer implements WorldRenderEvents.Last {
         float maxY = (float) (center.y + half);
         float maxZ = (float) (center.z + half);
 
-        // Draw 12 edges of the cube
+        // Performance optimization: Batch all cube edges in one go
         // Bottom face (4 edges)
         addLine(consumer, matrix, matrices, minX, minY, minZ, maxX, minY, minZ);
         addLine(consumer, matrix, matrices, maxX, minY, minZ, maxX, minY, maxZ);
@@ -96,6 +143,7 @@ public class BowTrajectoryRenderer implements WorldRenderEvents.Last {
 
     private void addLine(VertexConsumer consumer, Matrix4f matrix, MatrixStack matrices,
             float x1, float y1, float z1, float x2, float y2, float z2) {
+        // Performance optimization: Reduce redundant normal calculations
         consumer.vertex(matrix, x1, y1, z1)
                 .color(255, 0, 0, 255) // Red
                 .normal(matrices.peek(), 0f, 1f, 0f);

@@ -10,8 +10,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.consume.UseAction;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
+
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
@@ -27,7 +26,13 @@ public class BowTrajectoryMixin {
     private static final int MAX_TRAJECTORY_TICKS = 100;
     private static final double GRAVITY = 0.05; // Minecraft's gravity per tick
     private static final double AIR_RESISTANCE = 0.99; // Arrows slow down by 1% per tick
-    private static final double ARROW_SIZE = 0.5; // Arrow hitbox size
+
+    // Smooth trajectory variables
+    private static int trajectoryUpdateCounter = 0;
+    private static final int UPDATE_INTERVAL = 1; // Update every tick for smoothness
+
+    // Variables for rotation change detection
+    private static Vec3d lastPlayerRotation = null;
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void showBowTrajectory(CallbackInfo ci) {
@@ -42,11 +47,29 @@ public class BowTrajectoryMixin {
         // Check if player is using a bow
         if (!isUsingBow(player)) {
             BowTrajectoryData.clearTrajectory();
+            trajectoryUpdateCounter = 0;
+            lastPlayerRotation = null;
             return;
         }
 
-        // Calculate and render trajectory
-        calculateAccurateTrajectory(player, client.world);
+        // Check if player rotation has changed significantly
+        Vec3d currentRotation = player.getRotationVec(1.0f);
+        boolean rotationChanged = false;
+
+        if (lastPlayerRotation != null) {
+            double rotationDifference = lastPlayerRotation.distanceTo(currentRotation);
+            if (rotationDifference > 0.01) { // Small threshold for rotation change
+                rotationChanged = true;
+            }
+        }
+
+        // Update trajectory immediately if rotation changed or on interval
+        trajectoryUpdateCounter++;
+        if (rotationChanged || trajectoryUpdateCounter >= UPDATE_INTERVAL) {
+            trajectoryUpdateCounter = 0;
+            lastPlayerRotation = currentRotation;
+            calculateAccurateTrajectory(player, client.world);
+        }
     }
 
     private boolean isUsingBow(PlayerEntity player) {
@@ -72,7 +95,6 @@ public class BowTrajectoryMixin {
         BowTrajectoryData.setShouldRender(true);
 
         // Get bow charge progress
-        ItemStack bowStack = player.getActiveItem();
         int useTicks = player.getItemUseTime();
         float bowPower = BowItem.getPullProgress(useTicks);
 
@@ -86,29 +108,47 @@ public class BowTrajectoryMixin {
         float velocity = bowPower * 3.0f;
         if (velocity > 1.0f) {
             velocity = 1.0f;
-        }
-
-        // Arrow spawns slightly in front of player and offset down from eye level
+        } // Get player position and rotation for realistic bow mechanics
         Vec3d eyePos = player.getEyePos();
+        float yaw = player.getYaw();
+
+        // Use smooth interpolated rotation for better movement
         Vec3d lookDirection = player.getRotationVec(1.0f);
 
-        // Offset the starting position to match where arrows actually spawn
-        Vec3d startPos = eyePos.add(lookDirection.multiply(0.5))
-                .add(0, -0.1, 0); // Slightly lower than eye level
+        // Calculate realistic bow position (bow is held to the side and slightly down)
+        // Simulate holding a bow: offset to the right side and down from eye level
+        double sideOffset = 0.3; // Offset to the right (positive for right-handed)
+        double downOffset = 0.2; // Slightly below eye level
+        double forwardOffset = 0.4; // Slight forward offset for bow length
 
-        // Calculate initial velocity vector (multiply by 20 to convert to
-        // blocks/second, then back to blocks/tick)
-        Vec3d velocityVec = lookDirection.multiply(velocity * 3.0);
+        // Calculate side vector (perpendicular to look direction)
+        Vec3d sideVector = new Vec3d(
+                -Math.sin(Math.toRadians(yaw + 90)), // Perpendicular to yaw
+                0,
+                Math.cos(Math.toRadians(yaw + 90)));
+
+        Vec3d startPos = eyePos
+                .add(lookDirection.multiply(forwardOffset)) // Forward offset
+                .add(sideVector.multiply(sideOffset)) // Side offset (bow position)
+                .add(0, -downOffset, 0); // Down offset
+
+        // Add slight upward trajectory for realistic archery (bows shoot slightly up)
+        double upwardAngle = Math.toRadians(2.0); // 2 degree upward angle
+        Vec3d adjustedLookDirection = new Vec3d(
+                lookDirection.x,
+                lookDirection.y + Math.sin(upwardAngle), // Add upward component
+                lookDirection.z).normalize();
+
+        // Calculate initial velocity vector with more realistic scaling
+        Vec3d velocityVec = adjustedLookDirection.multiply(velocity * 2.5);
 
         // Simulate trajectory tick by tick
         Vec3d currentPos = startPos;
         Vec3d currentVelocity = velocityVec;
 
         for (int tick = 0; tick < MAX_TRAJECTORY_TICKS; tick++) {
-            // Store current position every few ticks for visualization
-            if (tick % 2 == 0) { // Every 2 ticks for smoother line
-                BowTrajectoryData.addTrajectoryPoint(currentPos);
-            }
+            // Store current position more frequently for smoother visualization
+            BowTrajectoryData.addTrajectoryPoint(currentPos);
 
             // Calculate next position
             Vec3d nextPos = currentPos.add(currentVelocity);
