@@ -23,9 +23,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(PlayerEntity.class)
 public class BowTrajectoryMixin {
 
-    private static final int MAX_TRAJECTORY_TICKS = 100;
-    private static final double GRAVITY = 0.05; // Minecraft's gravity per tick
-    private static final double AIR_RESISTANCE = 0.99; // Arrows slow down by 1% per tick
+    private static final int MAX_TRAJECTORY_TICKS = 200;
+    private static final double GRAVITY = 0.05; // Minecraft's actual gravity for arrows (0.05 per tick)
+    private static final double AIR_RESISTANCE = 0.99; // Arrows slow down by 1% per tick in air
 
     // Smooth trajectory variables
     private static int trajectoryUpdateCounter = 0;
@@ -104,11 +104,11 @@ public class BowTrajectoryMixin {
             return;
         }
 
-        // Calculate arrow velocity (matches BowItem.use method)
+        // Calculate arrow velocity (exactly matches Minecraft bow mechanics)
+        // Bow velocity ranges from 0 to 3 based on charge level
         float velocity = bowPower * 3.0f;
-        if (velocity > 1.0f) {
-            velocity = 1.0f;
-        } // Get player position and rotation for realistic bow mechanics
+
+        // Get player position and rotation for realistic bow mechanics
         Vec3d eyePos = player.getEyePos();
         float yaw = player.getYaw();
 
@@ -139,8 +139,8 @@ public class BowTrajectoryMixin {
                 lookDirection.y + Math.sin(upwardAngle), // Add upward component
                 lookDirection.z).normalize();
 
-        // Calculate initial velocity vector with more realistic scaling
-        Vec3d velocityVec = adjustedLookDirection.multiply(velocity * 2.5);
+        // Calculate initial velocity vector using Minecraft's actual velocity
+        Vec3d velocityVec = adjustedLookDirection.multiply(velocity);
 
         // Simulate trajectory tick by tick
         Vec3d currentPos = startPos;
