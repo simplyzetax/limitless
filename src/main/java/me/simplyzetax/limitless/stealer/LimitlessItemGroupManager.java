@@ -37,8 +37,8 @@ public class LimitlessItemGroupManager {
 
     private static void createItemGroup() {
         LIMITLESS_ITEM_GROUP = FabricItemGroup.builder()
-                .icon(() -> new ItemStack(Items.FLOW_ARMOR_TRIM_SMITHING_TEMPLATE))
-                .displayName(Text.literal("§9Limitless"))
+                .icon(() -> new ItemStack(Items.ENDER_EYE))
+                .displayName(Text.literal("§dItem Stealer"))
                 .entries((context, entries) -> {
                     if (EQUIPPED_ITEMS.isEmpty()) {
                         ItemStack emptyIndicator = new ItemStack(Items.BARRIER);

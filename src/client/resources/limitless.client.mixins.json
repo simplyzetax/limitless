@@ -8,7 +8,8 @@
     "PlayerListHudMixin",
     "EntityGlowMixin",
     "ShulkerBoxPlacementMixin",
-    "ShulkerBoxInteractionMixin"
+    "ShulkerBoxInteractionMixin",
+    "CreativeInventoryDropMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -37,8 +37,8 @@ public class ShulkerBoxItemGroupManager {
 
     private static void createItemGroup() {
         SHULKER_BOX_ITEM_GROUP = FabricItemGroup.builder()
-                .icon(() -> new ItemStack(Items.SHULKER_BOX))
-                .displayName(Text.literal("§dShulker Boxes"))
+                .icon(() -> new ItemStack(Items.BLUE_SHULKER_BOX))
+                .displayName(Text.literal("§9Shulker Boxes"))
                 .entries((context, entries) -> {
                     if (SHULKER_BOX_ITEMS.isEmpty()) {
                         ItemStack emptyIndicator = new ItemStack(Items.BARRIER);
