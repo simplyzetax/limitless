@@ -2,6 +2,7 @@
 package me.simplyzetax.limitless.client;
 
 import me.simplyzetax.limitless.stealer.LimitlessItemGroupManager;
+import me.simplyzetax.limitless.stealer.ShulkerBoxItemGroupManager;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemGroups;
 import net.minecraft.registry.Registries;
@@ -25,6 +26,7 @@ public class ItemGroupUtil {
 
             // Your custom groups
             case "limitless_main" -> LimitlessItemGroupManager.LIMITLESS_ITEM_GROUP;
+            case "limitless_shulker_boxes" -> ShulkerBoxItemGroupManager.SHULKER_BOX_ITEM_GROUP;
 
             default -> null;
         };
