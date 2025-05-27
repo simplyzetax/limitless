@@ -1,20 +1,15 @@
 package me.simplyzetax.limitless.client;
 
-import me.simplyzetax.limitless.Limitless;
 import me.simplyzetax.limitless.client.config.ClientConfig;
 import me.simplyzetax.limitless.client.screens.SettingsGUI;
-import me.simplyzetax.limitless.network.RefreshCreativePayload;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemGroup;
 import net.minecraft.sound.SoundEvents;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
-import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +22,7 @@ public class LimitlessClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        LOGGER.info("Limitless Client Initialized!");
+        LOGGER.info("Limitless Client Initialized (client-side only)!");
 
         // Register the right shift keybinding
         rshiftBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
@@ -43,8 +38,6 @@ public class LimitlessClient implements ClientModInitializer {
                 InputUtil.GLFW_KEY_G, // G key
                 "category.limitless.general" // Category translation key
         ));
-
-        registerNetworkHandlers();
 
         // Register the tick event to check for right shift presses
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
@@ -76,40 +69,4 @@ public class LimitlessClient implements ClientModInitializer {
             }
         });
     }
-
-    private void registerNetworkHandlers() {
-        Limitless.LOGGER.info("DEBUG: Registering client network handlers");
-
-        ClientPlayNetworking.registerGlobalReceiver(
-                RefreshCreativePayload.ID,
-                (payload, context) -> {
-                    Limitless.LOGGER.info("DEBUG: Client received refresh payload. Action: {}, Extra: {}",
-                            payload.action(), payload.extra());
-
-                    context.client().execute(() -> {
-                        Limitless.LOGGER.info("DEBUG: Executing client refresh task");
-
-                        switch (payload.action()) {
-                            case "refresh_creative" -> {
-                                Limitless.LOGGER.info("DEBUG: Refreshing all creative inventory");
-                                CreativeScreenManager.refreshCreativeInventoryIfOpen();
-                            }
-                            case "refresh_group" -> {
-                                Limitless.LOGGER.info("DEBUG: Refreshing group: {}", payload.extra());
-                                ItemGroup group = ItemGroupUtil.getItemGroupByName(payload.extra());
-                                if (group != null) {
-                                    Limitless.LOGGER.info("DEBUG: Found group, refreshing: {}", group);
-                                    CreativeScreenManager.refreshCreativeInventoryForGroup(group);
-                                } else {
-                                    Limitless.LOGGER.warn("DEBUG: Group not found for name: {}", payload.extra());
-                                }
-                            }
-                            default -> Limitless.LOGGER.warn("DEBUG: Unknown action: {}", payload.action());
-                        }
-                    });
-                });
-
-        Limitless.LOGGER.info("DEBUG: Client network handlers registered");
-    }
-
 }

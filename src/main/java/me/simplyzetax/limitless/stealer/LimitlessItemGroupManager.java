@@ -1,15 +1,12 @@
 package me.simplyzetax.limitless.stealer;
 
 import me.simplyzetax.limitless.Limitless;
-import me.simplyzetax.limitless.network.ServerNetworking;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -27,36 +24,14 @@ public class LimitlessItemGroupManager {
     }
 
     /**
-     * Adds an equipped item to the collection and refreshes the creative screen.
+     * Adds an equipped item to the collection.
+     * Creative inventory refresh is handled client-side by the mixin.
      */
     public static void addEquippedItem(ItemStack itemStack) {
         boolean wasAdded = EQUIPPED_ITEMS.add(itemStack.copy());
 
         if (wasAdded) {
             Limitless.LOGGER.info("Added equipped item: {}", itemStack.getName().getString());
-
-            // Send packet to all clients to refresh the creative screen
-            notifyAllClientsToRefresh();
-        }
-    }
-
-    /**
-     * Sends a packet to all clients to refresh the limitless item group.
-     */
-    private static void notifyAllClientsToRefresh() {
-        MinecraftServer server = Limitless.getCurrentServer();
-        Limitless.LOGGER.info("DEBUG: Attempting to notify clients. Server: {}", server);
-
-        if (server != null) {
-            var players = server.getPlayerManager().getPlayerList();
-            Limitless.LOGGER.info("DEBUG: Found {} players to notify", players.size());
-
-            for (ServerPlayerEntity player : players) {
-                Limitless.LOGGER.info("DEBUG: Sending refresh packet to player: {}", player.getName().getString());
-                ServerNetworking.notifyClientToRefreshLimitlessGroup(player);
-            }
-        } else {
-            Limitless.LOGGER.warn("DEBUG: Server is null, cannot notify clients");
         }
     }
 
@@ -87,23 +62,21 @@ public class LimitlessItemGroupManager {
     }
 
     /**
-     * Clears all equipped items and refreshes the screen.
+     * Clears all equipped items.
      */
     public static void clearEquippedItems() {
         EQUIPPED_ITEMS.clear();
         Limitless.LOGGER.info("Cleared all equipped items");
-        notifyAllClientsToRefresh();
     }
 
     /**
-     * Removes a specific equipped item and refreshes the screen.
+     * Removes a specific equipped item.
      */
     public static boolean removeEquippedItem(ItemStack itemStack) {
         boolean wasRemoved = EQUIPPED_ITEMS.remove(itemStack);
 
         if (wasRemoved) {
             Limitless.LOGGER.info("Removed equipped item: {}", itemStack.getName().getString());
-            notifyAllClientsToRefresh();
         }
 
         return wasRemoved;

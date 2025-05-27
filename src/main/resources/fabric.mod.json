@@ -3,12 +3,12 @@
   "id": "limitless",
   "version": "${version}",
   "name": "limitless",
-  "description": "",
+  "description": "Client-side mod for stealing/copying items from other players' equipment",
   "authors": [],
   "contact": {},
   "license": "All-Rights-Reserved",
   "icon": "assets/limitless/icon.png",
-  "environment": "*",
+  "environment": "client",
   "entrypoints": {
     "client": [
       "me.simplyzetax.limitless.client.LimitlessClient"
