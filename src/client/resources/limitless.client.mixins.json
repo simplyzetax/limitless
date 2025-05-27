@@ -10,7 +10,8 @@
     "ShulkerBoxPlacementMixin",
     "ShulkerBoxInteractionMixin",
     "CreativeInventoryDropMixin",
-    "CreativeInventorySlotClickMixin"
+    "CreativeInventorySlotClickMixin",
+    "BowTrajectoryMixin"
   ],
   "injectors": {
     "defaultRequire": 1

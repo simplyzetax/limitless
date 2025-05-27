@@ -28,9 +28,22 @@ public class SettingsGUI extends BaseOwoScreen<FlowLayout> {
                 rootComponent
                                 .surface(Surface.blur(3f, 5f))
                                 .horizontalAlignment(HorizontalAlignment.CENTER)
-                                .verticalAlignment(VerticalAlignment.CENTER);
+                                .verticalAlignment(VerticalAlignment.CENTER)
+                                .padding(Insets.both(10, 10)); // Add some padding around the content
 
+                // Add a title
                 rootComponent.child(
+                                Components.label(Text.literal("Limitless Settings").formatted(Formatting.BOLD,
+                                                Formatting.WHITE))
+                                                .horizontalSizing(Sizing.content())
+                                                .margins(Insets.bottom(15)) // Space below the title
+                );
+
+                FlowLayout buttonContainer = Containers.verticalFlow(Sizing.content(), Sizing.content());
+                buttonContainer.gap(8); // Add gap between buttons
+                buttonContainer.horizontalAlignment(HorizontalAlignment.CENTER);
+
+                buttonContainer.child(
                                 Components.button(
                                                 // Initialize the button text with the current value of the config
                                                 Text.literal("Only Player Items: ")
@@ -57,14 +70,12 @@ public class SettingsGUI extends BaseOwoScreen<FlowLayout> {
                                                                                                                                         ? Formatting.GREEN
                                                                                                                                         : Formatting.RED))));
                                                 })
-                                                .horizontalSizing(Sizing.fixed(150)) // Adjust the button width as
-                                                                                     // needed
-                                                .tooltip(Text.literal("Toggle whether only player items are stolen")
-                                                                .styled(style -> style.withColor(Formatting.GRAY))) // Add
-                                                                                                                    // tooltip
-                );
+                                                .horizontalSizing(Sizing.fixed(180)) // Adjust the button width
+                                                .tooltip(Text.literal(
+                                                                "If enabled, only items from other players will be added to the creative tab.")
+                                                                .styled(style -> style.withColor(Formatting.GRAY))));
 
-                rootComponent.child(
+                buttonContainer.child(
                                 Components.button(
                                                 // Initialize the button text with the current value of the config
                                                 Text.literal("Enable Stealing: ")
@@ -90,49 +101,39 @@ public class SettingsGUI extends BaseOwoScreen<FlowLayout> {
                                                                                                                                         ? Formatting.GREEN
                                                                                                                                         : Formatting.RED))));
                                                 })
-                                                .horizontalSizing(Sizing.fixed(150)) // Adjust the button width as
-                                                                                     // needed
-                                                .tooltip(Text.literal("Toggles item stealing")
-                                                                .styled(style -> style.withColor(Formatting.GRAY))) // Add
-                                                                                                                    // tooltip
-                );
+                                                .horizontalSizing(Sizing.fixed(180)) // Adjust the button width
+                                                .tooltip(Text.literal(
+                                                                "Toggles whether items seen from other players are added to the creative tab.")
+                                                                .styled(style -> style.withColor(Formatting.GRAY))));
 
-                rootComponent.child(
+                buttonContainer.child(
                                 Components.button(
-                                                // Initialize the button text with the current value of the config
-                                                Text.literal("Clear items")
-                                                                .styled(style -> style.withColor(Formatting.RED)),
+                                                Text.literal("Clear Stolen Items")
+                                                                .styled(style -> style.withColor(Formatting.GOLD)),
                                                 button -> {
-                                                        // Toggle the configuration value
                                                         LimitlessItemGroupManager.EQUIPPED_ITEMS.clear();
-                                                        Limitless.LOGGER.info("Cleared all items");
-
+                                                        Limitless.LOGGER.info(
+                                                                        "Cleared all stolen items from the creative tab.");
                                                         updateCreativeInventoryScreen();
                                                 })
-                                                .horizontalSizing(Sizing.fixed(150)) // Adjust the button width as
-                                                                                     // needed
-                                                .tooltip(Text.literal("Toggles item stealing")
-                                                                .styled(style -> style.withColor(Formatting.GRAY))) // Add
-                                                                                                                    // tooltip
-                );
+                                                .horizontalSizing(Sizing.fixed(180)) // Adjust the button width
+                                                .tooltip(Text.literal(
+                                                                "Removes all items collected by Limitless from the creative tab.")
+                                                                .styled(style -> style.withColor(Formatting.GRAY))));
 
-                rootComponent.child(
+                buttonContainer.child(
                                 Components.button(
-                                                // Initialize the button text with the current value of the config
-                                                Text.literal("Refresh GUI")
-                                                                .styled(style -> style.withColor(Formatting.GREEN)),
+                                                Text.literal("Refresh Creative Tab")
+                                                                .styled(style -> style.withColor(Formatting.AQUA)),
                                                 button -> {
-                                                        // Toggle the configuration value
-                                                        Limitless.LOGGER.info("Refreshed all items");
-
+                                                        Limitless.LOGGER.info("Refreshed the Limitless creative tab.");
                                                         updateCreativeInventoryScreen();
                                                 })
-                                                .horizontalSizing(Sizing.fixed(150)) // Adjust the button width as
-                                                                                     // needed
-                                                .tooltip(Text.literal("Toggles item stealing")
-                                                                .styled(style -> style.withColor(Formatting.GRAY))) // Add
-                                                                                                                    // tooltip
-                );
+                                                .horizontalSizing(Sizing.fixed(180)) // Adjust the button width
+                                                .tooltip(Text.literal("Forces a refresh of the Limitless creative tab.")
+                                                                .styled(style -> style.withColor(Formatting.GRAY))));
+
+                rootComponent.child(buttonContainer);
 
         }
 

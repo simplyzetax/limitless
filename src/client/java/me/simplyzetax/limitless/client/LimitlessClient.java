@@ -1,6 +1,7 @@
 package me.simplyzetax.limitless.client;
 
 import me.simplyzetax.limitless.client.config.ClientConfig;
+import me.simplyzetax.limitless.client.render.BowTrajectoryRenderer;
 import me.simplyzetax.limitless.client.screens.SettingsGUI;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.resource.featuretoggle.FeatureFlags;
@@ -72,5 +73,7 @@ public class LimitlessClient implements ClientModInitializer {
                 ClientConfig.PlayersShouldGlow = !ClientConfig.PlayersShouldGlow;
             }
         });
+
+        BowTrajectoryRenderer.register();
     }
 }
