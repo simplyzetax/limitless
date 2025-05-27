@@ -9,7 +9,8 @@
     "EntityGlowMixin",
     "ShulkerBoxPlacementMixin",
     "ShulkerBoxInteractionMixin",
-    "CreativeInventoryDropMixin"
+    "CreativeInventoryDropMixin",
+    "CreativeInventorySlotClickMixin"
   ],
   "injectors": {
     "defaultRequire": 1

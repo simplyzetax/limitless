@@ -32,6 +32,9 @@ public class ItemStackDisplayFormatter {
         setCustomDisplayName(displayStack, originalStack);
         setCustomLore(displayStack);
 
+        // Store the original item for later retrieval
+        OriginalItemStorage.storeOriginalItem(originalStack, displayStack);
+
         return displayStack;
     }
 
