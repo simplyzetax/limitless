@@ -1,6 +1,9 @@
 package me.simplyzetax.limitless.client;
 
-import me.simplyzetax.limitless.client.screens.TestGUI;
+import me.simplyzetax.limitless.client.config.ClientConfig;
+import me.simplyzetax.limitless.client.screens.SettingsGUI;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.sound.SoundEvents;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -16,6 +19,7 @@ public class LimitlessClient implements ClientModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     private static KeyBinding rshiftBinding;
+    private static KeyBinding gBinding;
 
     @Override
     public void onInitializeClient() {
@@ -29,6 +33,13 @@ public class LimitlessClient implements ClientModInitializer {
                 "category.limitless.general" // Category translation key
         ));
 
+        gBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.limitless.g", // Translation key
+                InputUtil.Type.KEYSYM, // Input type
+                InputUtil.GLFW_KEY_G, // G key
+                "category.limitless.general" // Category translation key
+        ));
+
         // Register the tick event to check for right shift presses
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (rshiftBinding.wasPressed()) {
@@ -39,9 +50,23 @@ public class LimitlessClient implements ClientModInitializer {
                 if (client.player != null) {
 
                     // Example: Do something with the player
-                    MinecraftClient.getInstance().setScreen(new TestGUI());
+                    MinecraftClient.getInstance().setScreen(new SettingsGUI());
 
                 }
+            }
+            while (gBinding.wasPressed()) {
+                // This code runs when g is pressed
+                LOGGER.info("G pressed!");
+
+                // Get player
+                PlayerEntity player = MinecraftClient.getInstance().player;
+
+                if (player != null) {
+                    // play sound to player to indicate that it worked
+                    player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_BASEDRUM.value(), 1.0F, 1.0F);
+                }
+
+                ClientConfig.PlayersShouldGlow = !ClientConfig.PlayersShouldGlow;
             }
         });
     }

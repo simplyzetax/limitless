@@ -76,7 +76,8 @@ public class Limitless implements ModInitializer {
      * @param entries       The creative tab entries.
      * @param wrapperLookup The registry wrapper lookup.
      */
-    private void addUniqueItemStack(ItemStack itemStack, Set<String> addedKeys, ItemGroup.Entries entries, RegistryWrapper.WrapperLookup wrapperLookup) {
+    private void addUniqueItemStack(ItemStack itemStack, Set<String> addedKeys, ItemGroup.Entries entries,
+            RegistryWrapper.WrapperLookup wrapperLookup) {
         // Generate a unique key based on item ID and OBTAINED_FROM component
         String uniqueKey = generateUniqueKey(itemStack, wrapperLookup);
 
@@ -87,7 +88,8 @@ public class Limitless implements ModInitializer {
     }
 
     /**
-     * Generates a unique key for an ItemStack based on its registry ID and the obtained entity name.
+     * Generates a unique key for an ItemStack based on its registry ID and the
+     * obtained entity name.
      *
      * @param itemStack     The ItemStack.
      * @param wrapperLookup The registry wrapper lookup.
@@ -96,12 +98,13 @@ public class Limitless implements ModInitializer {
     private String generateUniqueKey(ItemStack itemStack, RegistryWrapper.WrapperLookup wrapperLookup) {
         // Use Registry IDs and OBTAINED_FROM component for more reliable uniqueness
         Identifier itemId = Registries.ITEM.getId(itemStack.getItem());
-        String obtainedFrom = getEntityName(itemStack);
+        String obtainedFrom = getEntityName(itemStack).orElse("Unknown");
         return itemId.toString() + ":" + obtainedFrom;
     }
 
     /**
-     * Creates a single ItemStack with updated lore and display name for the creative tab.
+     * Creates a single ItemStack with updated lore and display name for the
+     * creative tab.
      *
      * @param originalStack The original ItemStack.
      * @return The modified ItemStack for display.
@@ -111,8 +114,8 @@ public class Limitless implements ModInitializer {
         singleItemStack.setCount(1);
 
         // Retrieve the stored entity and time name from CUSTOM_DATA
-        String obtainedFromEntity = getEntityName(singleItemStack);
-        String obtainedTime = getObtainedTime(singleItemStack);
+        Optional<String> obtainedFromEntity = getEntityName(singleItemStack);
+        Optional<String> obtainedTime = getObtainedTime(singleItemStack);
 
         MutableText displayName = Text.literal(originalStack.getName().getString())
                 .styled(style -> style.withColor(0x5090D9).withItalic(false));
@@ -123,15 +126,14 @@ public class Limitless implements ModInitializer {
 
         // Add the "Obtained from:" line
         lore.add(Text.literal("§7Obtained from: ")
-                .append(Text.literal(obtainedFromEntity).styled(style -> style.withColor(Formatting.GOLD)
-                        .withItalic(false)
-                )));
+                .append(Text.literal(obtainedFromEntity.orElse("Unknown"))
+                        .styled(style -> style.withColor(Formatting.GOLD)
+                                .withItalic(false))));
 
         // Add the new "Obtained time:" line
         lore.add(Text.literal("§7Obtained time: ")
-                .append(Text.literal(new Date().toString()).styled(style -> style.withColor(Formatting.GOLD)
-                        .withItalic(false)
-                )));
+                .append(Text.literal(obtainedTime.orElse("Unknown")).styled(style -> style.withColor(Formatting.GOLD)
+                        .withItalic(false))));
 
         lore.add(Text.literal(""));
 
@@ -152,32 +154,34 @@ public class Limitless implements ModInitializer {
      * @param stack The ItemStack to retrieve the name from.
      * @return The name of the entity, or "Unknown" if not set.
      */
-    private String getEntityName(ItemStack stack) {
+    private Optional<String> getEntityName(ItemStack stack) {
         // Retrieve the CUSTOM_DATA component
-        @Nullable NbtComponent customDataComponent = stack.get(DataComponentTypes.CUSTOM_DATA);
+        @Nullable
+        NbtComponent customDataComponent = stack.get(DataComponentTypes.CUSTOM_DATA);
         if (customDataComponent != null) {
-            NbtCompound customData = customDataComponent.getNbt();
-            if (customData != null && customData.contains(OBTAINED_FROM_KEY, NbtElement.STRING_TYPE)) {
+            NbtCompound customData = customDataComponent.copyNbt();
+            if (customData != null && customData.contains(OBTAINED_FROM_KEY)) {
                 return customData.getString(OBTAINED_FROM_KEY);
             }
         } else {
             LOGGER.warn("Missing CUSTOM_DATA component for ItemStack: {}", stack);
         }
-        return "Unknown";
+        return Optional.ofNullable("Unknown");
     }
 
-    private String getObtainedTime(ItemStack stack) {
+    private Optional<String> getObtainedTime(ItemStack stack) {
         // Retrieve the CUSTOM_DATA component
-        @Nullable NbtComponent customDataComponent = stack.get(DataComponentTypes.CUSTOM_DATA);
+        @Nullable
+        NbtComponent customDataComponent = stack.get(DataComponentTypes.CUSTOM_DATA);
         if (customDataComponent != null) {
-            NbtCompound customData = customDataComponent.getNbt();
-            if (customData != null && customData.contains(OBTAINED_TIME_KEY, NbtElement.STRING_TYPE)) {
+            NbtCompound customData = customDataComponent.copyNbt();
+            if (customData != null && customData.contains(OBTAINED_TIME_KEY)) {
                 return customData.getString(OBTAINED_TIME_KEY);
             }
         } else {
             LOGGER.warn("Missing CUSTOM_DATA component for ItemStack: {}", stack);
         }
-        return "Unknown";
+        return Optional.ofNullable("Unknown");
     }
 
     /**
@@ -187,7 +191,6 @@ public class Limitless implements ModInitializer {
         Registry.register(
                 Registries.ITEM_GROUP,
                 Identifier.of(MOD_ID, "main"),
-                LIMITLESS_ITEM_GROUP
-        );
+                LIMITLESS_ITEM_GROUP);
     }
 }
