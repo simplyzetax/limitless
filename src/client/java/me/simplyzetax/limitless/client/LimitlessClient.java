@@ -3,6 +3,8 @@ package me.simplyzetax.limitless.client;
 import me.simplyzetax.limitless.client.config.ClientConfig;
 import me.simplyzetax.limitless.client.screens.SettingsGUI;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.resource.featuretoggle.FeatureFlags;
+import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.sound.SoundEvents;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -16,6 +18,8 @@ import org.slf4j.LoggerFactory;
 public class LimitlessClient implements ClientModInitializer {
     public static final String MOD_ID = "limitless";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+
+    public static FeatureSet enabledFeatures = FeatureFlags.FEATURE_MANAGER.getFeatureSet();
 
     private static KeyBinding rshiftBinding;
     private static KeyBinding gBinding;

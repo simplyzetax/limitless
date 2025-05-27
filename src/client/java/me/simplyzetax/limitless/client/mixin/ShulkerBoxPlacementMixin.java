@@ -1,6 +1,7 @@
 package me.simplyzetax.limitless.client.mixin;
 
 import me.simplyzetax.limitless.Limitless;
+import me.simplyzetax.limitless.client.LimitlessClient;
 import me.simplyzetax.limitless.client.config.ClientConfig;
 import me.simplyzetax.limitless.stealer.ShulkerBoxItemGroupManager;
 import net.fabricmc.api.EnvType;
@@ -89,13 +90,13 @@ public class ShulkerBoxPlacementMixin {
             client.execute(() -> {
                 ClientPlayerEntity player = client.player;
                 if (player != null) {
-                    net.minecraft.resource.featuretoggle.FeatureSet enabledFeatures = client.world.getEnabledFeatures();
                     boolean operatorTabEnabled = player.hasPermissionLevel(2);
 
                     Screen currentScreen = client.currentScreen;
 
                     client.setScreen(null);
-                    client.setScreen(new CreativeInventoryScreen(player, enabledFeatures, operatorTabEnabled));
+                    client.setScreen(
+                            new CreativeInventoryScreen(player, LimitlessClient.enabledFeatures, operatorTabEnabled));
                     client.setScreen(currentScreen);
                 }
             });

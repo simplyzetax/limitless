@@ -5,6 +5,8 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.item.ItemGroup;
+import net.minecraft.resource.featuretoggle.FeatureFlags;
+import net.minecraft.resource.featuretoggle.FeatureSet;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -201,10 +203,18 @@ public class CreativeScreenManager {
         if (player == null)
             return;
 
-        net.minecraft.resource.featuretoggle.FeatureSet enabledFeatures = client.world.getEnabledFeatures();
+        // Always use all enabled features for maximum functionality
 
-        client.setScreen(null);
-        client.setScreen(new CreativeInventoryScreen(player, enabledFeatures, true));
-        client.setScreen(null);
+        // Store the currently selected tab before refreshing
+        ItemGroup currentTab = getCurrentTab();
+
+        // Create and set a new creative screen - don't set to null afterward
+        client.setScreen(null); // Temporary to clear old screen
+        client.setScreen(new CreativeInventoryScreen(player, LimitlessClient.enabledFeatures, true));
+
+        // If we had a tab selected, try to restore it
+        if (currentTab != null && client.currentScreen instanceof CreativeInventoryScreen) {
+            restoreSelectedTab((CreativeInventoryScreen) client.currentScreen, currentTab);
+        }
     }
 }

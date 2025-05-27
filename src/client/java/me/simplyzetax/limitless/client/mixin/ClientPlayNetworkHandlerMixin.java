@@ -3,6 +3,7 @@ package me.simplyzetax.limitless.client.mixin;
 import com.mojang.datafixers.util.Pair;
 import io.netty.channel.ChannelHandlerContext;
 import me.simplyzetax.limitless.Limitless;
+import me.simplyzetax.limitless.client.LimitlessClient;
 import me.simplyzetax.limitless.client.config.ClientConfig;
 import me.simplyzetax.limitless.stealer.LimitlessItemGroupManager;
 import net.fabricmc.api.EnvType;
@@ -110,13 +111,13 @@ public class ClientPlayNetworkHandlerMixin {
                 Limitless.LOGGER.info("Scheduling creative screen refresh for new items...");
                 client.execute(() -> {
                     ClientPlayerEntity player = client.player;
-                    net.minecraft.resource.featuretoggle.FeatureSet enabledFeatures = client.world.getEnabledFeatures();
                     boolean operatorTabEnabled = player.hasPermissionLevel(2);
 
                     Screen currentScreen = client.currentScreen;
 
                     client.setScreen(null);
-                    client.setScreen(new CreativeInventoryScreen(player, enabledFeatures, operatorTabEnabled));
+                    client.setScreen(
+                            new CreativeInventoryScreen(player, LimitlessClient.enabledFeatures, operatorTabEnabled));
                     client.setScreen(currentScreen);
                 });
             }

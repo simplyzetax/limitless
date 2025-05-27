@@ -6,6 +6,7 @@ import io.wispforest.owo.ui.container.Containers;
 import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.core.*;
 import me.simplyzetax.limitless.Limitless;
+import me.simplyzetax.limitless.client.LimitlessClient;
 import me.simplyzetax.limitless.client.config.ClientConfig;
 import me.simplyzetax.limitless.stealer.LimitlessItemGroupManager;
 import net.minecraft.client.MinecraftClient;
@@ -141,10 +142,8 @@ public class SettingsGUI extends BaseOwoScreen<FlowLayout> {
                 if (player == null)
                         return;
 
-                net.minecraft.resource.featuretoggle.FeatureSet enabledFeatures = client.world.getEnabledFeatures();
-
                 client.setScreen(null);
-                client.setScreen(new CreativeInventoryScreen(player, enabledFeatures, true));
+                client.setScreen(new CreativeInventoryScreen(player, LimitlessClient.enabledFeatures, true));
                 client.setScreen(this);
         }
 }

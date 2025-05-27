@@ -26,12 +26,13 @@ public class CreativeInventoryDropMixin {
     private static Field focusedSlotField;
     private static boolean fieldInitialized = false;
 
-    @Inject(method = "keyPressed", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
     private void onKeyPressed(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
         // Check if Q key was pressed
         if (keyCode == GLFW.GLFW_KEY_Q) {
             if (handleQKeyPress()) {
-                cir.setReturnValue(true); // Set the return value instead of trying to cancel
+                cir.setReturnValue(true); // Cancel the default behavior by returning true
+                cir.cancel(); // Explicitly cancel the event
             }
         }
     }
@@ -62,8 +63,22 @@ public class CreativeInventoryDropMixin {
                     if (wasRemoved) {
                         Limitless.LOGGER.info("Removed item via Q key: {}", itemToRemove.getName().getString());
 
-                        // Refresh the creative inventory to reflect changes
-                        CreativeScreenManager.scheduleRefreshForGroup(currentTab);
+                        // Schedule a creative inventory refresh without closing the interface
+                        net.minecraft.client.MinecraftClient client = net.minecraft.client.MinecraftClient
+                                .getInstance();
+                        client.execute(() -> {
+                            // Get current screen before refresh to preserve it
+                            net.minecraft.client.gui.screen.Screen currentScreen = client.currentScreen;
+
+                            // Schedule a proper refresh for our custom tab
+                            CreativeScreenManager.refreshCreativeInventoryForGroup(currentTab);
+
+                            // If we closed the screen during refresh, reopen it
+                            if (client.currentScreen == null && currentScreen instanceof CreativeInventoryScreen) {
+                                client.setScreen(currentScreen);
+                            }
+                        });
+
                         return true; // Item was removed from our custom group
                     }
                 }
