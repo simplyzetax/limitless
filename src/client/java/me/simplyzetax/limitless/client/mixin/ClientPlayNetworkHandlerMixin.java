@@ -4,6 +4,7 @@ import com.mojang.datafixers.util.Pair;
 import io.netty.channel.ChannelHandlerContext;
 import me.simplyzetax.limitless.Limitless;
 import me.simplyzetax.limitless.client.config.ClientConfig;
+import me.simplyzetax.limitless.stealer.LimitlessItemGroupManager;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
@@ -11,7 +12,6 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.LoreComponent;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
@@ -21,19 +21,13 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.EntityEquipmentUpdateS2CPacket;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import static me.simplyzetax.limitless.Limitless.EQUIPPED_ITEMS;
 
 @Environment(EnvType.CLIENT)
 @Mixin(ClientConnection.class) // Ensure this is the correct target class
@@ -46,7 +40,7 @@ public class ClientPlayNetworkHandlerMixin {
      * @return True if an equivalent stack exists, false otherwise.
      */
     private static boolean containsEquivalentItem(ItemStack stack) {
-        for (ItemStack existing : EQUIPPED_ITEMS) {
+        for (ItemStack existing : LimitlessItemGroupManager.EQUIPPED_ITEMS) {
             if (existing.getItem() == stack.getItem()
                     && ItemStack.areItemsEqual(existing, stack)
                     && existing.getName().equals(stack.getName())) {
@@ -57,7 +51,8 @@ public class ClientPlayNetworkHandlerMixin {
     }
 
     /**
-     * Injects into the channelRead0 method to process EntityEquipmentUpdateS2CPacket.
+     * Injects into the channelRead0 method to process
+     * EntityEquipmentUpdateS2CPacket.
      *
      * @param context The channel handler context.
      * @param packet  The received packet.
@@ -67,7 +62,7 @@ public class ClientPlayNetworkHandlerMixin {
     private void onChannelRead(ChannelHandlerContext context, Packet<?> packet, CallbackInfo ci) {
         if (packet instanceof EntityEquipmentUpdateS2CPacket eqPacket) {
 
-            if(!ClientConfig.EnableStealing) {
+            if (!ClientConfig.EnableStealing) {
                 Limitless.LOGGER.info("Skipping entity equipment update as stealing is disabled");
                 return;
             }
@@ -104,7 +99,7 @@ public class ClientPlayNetworkHandlerMixin {
                         // Log and add to EQUIPPED_ITEMS
                         Limitless.LOGGER.info("Adding new item from entity '{}' to Limitless tab: {}",
                                 entityName, copy.getItem().getTranslationKey());
-                        Limitless.EQUIPPED_ITEMS.add(copy);
+                        LimitlessItemGroupManager.addEquippedItem(copy);
                         foundNewItem = true;
                     }
                 }

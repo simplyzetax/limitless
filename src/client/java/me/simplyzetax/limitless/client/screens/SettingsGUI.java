@@ -7,6 +7,7 @@ import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.core.*;
 import me.simplyzetax.limitless.Limitless;
 import me.simplyzetax.limitless.client.config.ClientConfig;
+import me.simplyzetax.limitless.stealer.LimitlessItemGroupManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -102,7 +103,7 @@ public class SettingsGUI extends BaseOwoScreen<FlowLayout> {
                                                                 .styled(style -> style.withColor(Formatting.RED)),
                                                 button -> {
                                                         // Toggle the configuration value
-                                                        Limitless.EQUIPPED_ITEMS.clear();
+                                                        LimitlessItemGroupManager.EQUIPPED_ITEMS.clear();
                                                         Limitless.LOGGER.info("Cleared all items");
 
                                                         updateCreativeInventoryScreen();
