@@ -23,7 +23,7 @@ public class DamageNumberMixin {
         if (!FabricLoader.getInstance().getEnvironmentType().equals(EnvType.CLIENT)) {
             return;
         }
-        
+
         if (!ClientConfig.ShowDamageNumbers) {
             return;
         }
@@ -32,20 +32,21 @@ public class DamageNumberMixin {
             LivingEntity entity = (LivingEntity) (Object) this;
             float currentHealth = entity.getHealth();
             float newHealth = health;
-            
+
             // Only show if health actually decreased (took damage)
             if (newHealth < currentHealth) {
                 float damage = currentHealth - newHealth;
-                
+
                 // Determine if this might be a critical hit (simple heuristic)
                 DamageNumber.DamageType damageType = DamageNumber.DamageType.NORMAL;
-                
+
                 // Check if this entity is a player and if the damage seems unusually high
-                // This is a simple heuristic since we don't have access to the damage source here
+                // This is a simple heuristic since we don't have access to the damage source
+                // here
                 if (damage > 6.0f) { // Assume damage > 6 might be critical
                     damageType = DamageNumber.DamageType.CRITICAL;
                 }
-                
+
                 // Add damage number
                 DamageNumberManager.addDamageNumber(entity, damage, damageType);
 
@@ -55,7 +56,7 @@ public class DamageNumberMixin {
             // Check for healing
             else if (newHealth > currentHealth) {
                 float healing = newHealth - currentHealth;
-                
+
                 // Add healing number
                 DamageNumberManager.addDamageNumber(entity, healing, DamageNumber.DamageType.HEALING);
 

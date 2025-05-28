@@ -8,4 +8,5 @@ public class ClientConfig {
     public static boolean ShowBowTrajectory = false;
     public static boolean EnableArrowDodging = false;
     public static boolean ShowDamageNumbers = true;
+    public static String DamageNumberFont = "default"; // Options: "default", "uniform", "alt", "compact"
 }

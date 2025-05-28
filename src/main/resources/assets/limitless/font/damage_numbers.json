@@ -1,0 +1,15 @@
+{
+    "providers": [
+        {
+            "type": "reference",
+            "id": "minecraft:default"
+        },
+        {
+            "type": "space",
+            "advances": {
+                " ": 3,
+                "\u00a0": 3
+            }
+        }
+    ]
+}

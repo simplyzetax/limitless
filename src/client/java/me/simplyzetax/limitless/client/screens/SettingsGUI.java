@@ -8,6 +8,7 @@ import io.wispforest.owo.ui.core.*;
 import me.simplyzetax.limitless.Limitless;
 import me.simplyzetax.limitless.client.LimitlessClient;
 import me.simplyzetax.limitless.client.config.ClientConfig;
+import me.simplyzetax.limitless.client.util.DamageFontManager;
 import me.simplyzetax.limitless.stealer.LimitlessItemGroupManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
@@ -200,6 +201,32 @@ public class SettingsGUI extends BaseOwoScreen<FlowLayout> {
                                                 .horizontalSizing(Sizing.fixed(180)) // Adjust the button width
                                                 .tooltip(Text.literal(
                                                                 "Displays floating damage numbers above entities when they take damage or heal.")
+                                                                .styled(style -> style.withColor(Formatting.GRAY))));
+
+                buttonContainer.child(
+                                Components.button(
+                                                // Initialize the button text with the current font
+                                                Text.literal("Damage Font: ")
+                                                                .append(Text.literal(ClientConfig.DamageNumberFont
+                                                                                .toUpperCase())
+                                                                                .styled(style -> style.withColor(
+                                                                                                Formatting.YELLOW))),
+                                                button -> {
+                                                        // Cycle to next font
+                                                        DamageFontManager.cycleFont();
+
+                                                        // Update the button label
+                                                        button.setMessage(
+                                                                        Text.literal("Damage Font: ")
+                                                                                        .append(Text.literal(
+                                                                                                        ClientConfig.DamageNumberFont
+                                                                                                                        .toUpperCase())
+                                                                                                        .styled(style -> style
+                                                                                                                        .withColor(Formatting.YELLOW))));
+                                                })
+                                                .horizontalSizing(Sizing.fixed(180)) // Adjust the button width
+                                                .tooltip(Text.literal(
+                                                                "Changes the font used for damage numbers. Options: Default, Uniform, Alt, Compact, Custom")
                                                                 .styled(style -> style.withColor(Formatting.GRAY))));
 
                 buttonContainer.child(
