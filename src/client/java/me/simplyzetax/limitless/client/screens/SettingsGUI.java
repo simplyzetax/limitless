@@ -140,6 +140,38 @@ public class SettingsGUI extends BaseOwoScreen<FlowLayout> {
 
                 buttonContainer.child(
                                 Components.button(
+                                                // Initialize the button text with the current value of the config
+                                                Text.literal("Enable Arrow Dodging: ")
+                                                                .append(Text.literal(
+                                                                                ClientConfig.EnableArrowDodging ? "✔"
+                                                                                                : "✖")
+                                                                                .styled(style -> style.withColor(
+                                                                                                ClientConfig.EnableArrowDodging
+                                                                                                                ? Formatting.GREEN
+                                                                                                                : Formatting.RED))),
+                                                button -> {
+                                                        // Toggle the configuration value
+                                                        ClientConfig.EnableArrowDodging = !ClientConfig.EnableArrowDodging;
+
+                                                        // Update the button label
+                                                        button.setMessage(
+                                                                        Text.literal("Enable Arrow Dodging: ")
+                                                                                        .append(Text.literal(
+                                                                                                        ClientConfig.EnableArrowDodging
+                                                                                                                        ? "✔"
+                                                                                                                        : "✖")
+                                                                                                        .styled(style -> style
+                                                                                                                        .withColor(ClientConfig.EnableArrowDodging
+                                                                                                                                        ? Formatting.GREEN
+                                                                                                                                        : Formatting.RED))));
+                                                })
+                                                .horizontalSizing(Sizing.fixed(180)) // Adjust the button width
+                                                .tooltip(Text.literal(
+                                                                "Automatically detects incoming arrows and executes evasive movements to avoid hits.")
+                                                                .styled(style -> style.withColor(Formatting.GRAY))));
+
+                buttonContainer.child(
+                                Components.button(
                                                 Text.literal("Clear Stolen Items")
                                                                 .styled(style -> style.withColor(Formatting.GOLD)),
                                                 button -> {

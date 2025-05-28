@@ -1,6 +1,7 @@
-package me.simplyzetax.limitless.client;
+package me.simplyzetax.limitless.client.util;
 
 import me.simplyzetax.limitless.Limitless;
+import me.simplyzetax.limitless.client.LimitlessClient;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
 import net.minecraft.client.network.ClientPlayerEntity;

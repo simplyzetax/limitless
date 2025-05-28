@@ -23,9 +23,14 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
+import net.minecraft.world.RaycastContext;
+import me.simplyzetax.limitless.client.config.ClientConfig;
 import me.simplyzetax.limitless.client.util.ArrowInfo;
 import me.simplyzetax.limitless.client.util.BowChargeInfo;
 import me.simplyzetax.limitless.client.util.DodgeCalculation;
+import me.simplyzetax.limitless.client.util.ThreatArrowData;
 
 @Mixin(ClientPlayerEntity.class)
 public class ArrowDodgeMixin {
@@ -48,6 +53,10 @@ public class ArrowDodgeMixin {
             if (tickCounter % 100 == 0) {
                 LOGGER.debug("ArrowDodge: World is null, skipping tick");
             }
+            return;
+        }
+
+        if (!ClientConfig.EnableArrowDodging) {
             return;
         }
 
@@ -173,8 +182,12 @@ public class ArrowDodgeMixin {
             boolean shouldRemove = arrowGone || tooOld || stationary;
 
             if (shouldRemove) {
-                // Also remove from dodged arrows set
+                // Also remove from dodged arrows set and threatening arrows
                 dodgedArrows.remove(arrowUuid);
+                if (ThreatArrowData.isArrowThreatening(arrowUuid)) {
+                    ThreatArrowData.removeThreateningArrow(arrowUuid);
+                    LOGGER.info("ArrowDodge: Arrow {} removed from threatening list - no longer glowing", arrowUuid);
+                }
 
                 if (arrowGone) {
                     LOGGER.debug("ArrowDodge: Removing arrow {} - no longer in world", arrowUuid);
@@ -254,9 +267,18 @@ public class ArrowDodgeMixin {
             LOGGER.debug("ArrowDodge: Threat analysis - willHit={}, timeToImpact={}, arrowPos={}",
                     calc.willHit, calc.timeToImpact, arrow.position);
 
-            if (calc.willHit && calc.timeToImpact > 0) {
+            if (!calc.willHit && calc.timeToImpact == 0 && calc.impactPoint == null) {
+                // This indicates the path was obstructed - add specific logging
+                LOGGER.debug("ArrowDodge: No threat from arrow {} - path likely obstructed by blocks", arrowUuid);
+            }
+
+            if (calc.willHit && calc.timeToImpact > 3) { // Require at least 3 ticks warning for human-like reaction
                 LOGGER.warn("ArrowDodge: THREAT DETECTED! Impact in {} ticks at {}",
                         calc.timeToImpact, calc.impactPoint);
+
+                // Mark arrow as threatening for red glow effect
+                ThreatArrowData.markArrowAsThreatening(arrowUuid);
+                LOGGER.info("ArrowDodge: Arrow {} marked as THREATENING - will glow red!", arrowUuid);
 
                 // Calculate safe dodge direction
                 Vec3d safeDirection = calculateSafeDodgeDirection(
@@ -266,10 +288,10 @@ public class ArrowDodgeMixin {
                     // Mark this arrow as dodged to prevent repeated dodges
                     dodgedArrows.add(arrowUuid);
 
-                    // Calculate dodge distance based on urgency
-                    double dodgeDistance = Math.min(2.0, calc.timeToImpact * 0.1);
+                    // Calculate more conservative dodge distance for subtlety
+                    double dodgeDistance = Math.min(1.5, Math.max(0.8, calc.timeToImpact * 0.08));
                     dodgeTarget = playerPos.add(safeDirection.multiply(dodgeDistance));
-                    dodgeTicks = Math.max(5, (int) (calc.timeToImpact * 0.8)); // Start dodge early
+                    dodgeTicks = Math.max(3, (int) (calc.timeToImpact * 0.6)); // Shorter, more subtle dodge duration
                     dodgeJustStarted = true; // Mark that dodge just started
 
                     LOGGER.warn(
@@ -314,7 +336,16 @@ public class ArrowDodgeMixin {
             Box arrowBox = new Box(arrowPos.subtract(0.1, 0.1, 0.1), arrowPos.add(0.1, 0.1, 0.1));
 
             if (arrowBox.intersects(playerBox.offset(playerPos.subtract(playerPos)))) {
-                LOGGER.debug("ArrowDodge: Collision detected at tick {} position {}", tick, arrowPos);
+                // Before declaring a threat, check if blocks obstruct the path
+                if (isPathObstructed(arrow.position, arrowPos, playerPos)) {
+                    LOGGER.debug(
+                            "ArrowDodge: Collision detected at tick {} but path is obstructed by blocks - no threat",
+                            tick);
+                    return new DodgeCalculation(false, 0, null);
+                }
+
+                LOGGER.debug("ArrowDodge: Collision detected at tick {} position {} - clear path confirmed", tick,
+                        arrowPos);
                 return new DodgeCalculation(true, tick, arrowPos);
             }
 
@@ -326,6 +357,44 @@ public class ArrowDodgeMixin {
         }
 
         return new DodgeCalculation(false, 0, null);
+    }
+
+    /**
+     * Check if blocks obstruct the path between the arrow and the player.
+     * Uses raycasting to detect solid blocks that would stop the arrow.
+     */
+    private boolean isPathObstructed(Vec3d arrowStart, Vec3d arrowCurrent, Vec3d playerPos) {
+        ClientPlayerEntity player = (ClientPlayerEntity) (Object) this;
+        MinecraftClient client = MinecraftClient.getInstance();
+
+        if (client.world == null) {
+            return false; // Assume clear if no world context
+        }
+
+        // Raycast from current arrow position towards the player center
+        Vec3d playerCenter = playerPos.add(0, 0.9, 0); // Player eye height approximately
+
+        // Use Minecraft's built-in raycasting
+        RaycastContext raycastContext = new RaycastContext(
+                arrowCurrent,
+                playerCenter,
+                RaycastContext.ShapeType.COLLIDER, // Check collision shapes
+                RaycastContext.FluidHandling.NONE, // Ignore fluids
+                player);
+
+        BlockHitResult hitResult = client.world.raycast(raycastContext);
+
+        // If we hit a block before reaching the player, path is obstructed
+        boolean isObstructed = hitResult.getType() == HitResult.Type.BLOCK;
+
+        if (isObstructed) {
+            LOGGER.debug("ArrowDodge: Path obstructed by block at {} between arrow {} and player {}",
+                    hitResult.getPos(), arrowCurrent, playerCenter);
+        } else {
+            LOGGER.debug("ArrowDodge: Clear path from arrow {} to player {}", arrowCurrent, playerCenter);
+        }
+
+        return isObstructed;
     }
 
     private Vec3d calculateSafeDodgeDirection(ClientPlayerEntity player, ArrowInfo arrow, int timeToImpact) {
@@ -391,17 +460,18 @@ public class ArrowDodgeMixin {
 
         // Apply dodge as a single impulse only when dodge just started
         if (dodgeJustStarted) {
-            double dodgeSpeed = 0.6; // Reduced for more natural movement
+            double dodgeSpeed = 0.35; // More subtle movement speed
             Vec3d dodgeVelocity = direction.multiply(dodgeSpeed);
 
-            // Add slight upward component to help with movement
-            dodgeVelocity = dodgeVelocity.add(0, 0.05, 0);
+            // Add very slight upward component to help with movement
+            dodgeVelocity = dodgeVelocity.add(0, 0.03, 0);
 
             // Set the velocity once as an impulse
             player.setVelocity(dodgeVelocity);
             dodgeJustStarted = false; // Only apply impulse once
 
-            LOGGER.info("ArrowDodge: Applied dodge impulse - direction={}, velocity={}", direction, dodgeVelocity);
+            LOGGER.info("ArrowDodge: Applied subtle dodge impulse - direction={}, velocity={}", direction,
+                    dodgeVelocity);
         }
         // No continuous velocity adjustments - let physics handle the rest
 

@@ -1,7 +1,7 @@
 package me.simplyzetax.limitless.client.mixin;
 
 import me.simplyzetax.limitless.Limitless;
-import me.simplyzetax.limitless.client.CreativeScreenManager;
+import me.simplyzetax.limitless.client.util.CreativeScreenManager;
 import me.simplyzetax.limitless.stealer.LimitlessItemGroupManager;
 import me.simplyzetax.limitless.stealer.ShulkerBoxItemGroupManager;
 import net.fabricmc.api.EnvType;
