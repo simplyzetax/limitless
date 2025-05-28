@@ -20,11 +20,11 @@ public class DamageNumber {
     public static final long DISPLAY_DURATION = 2000; // 2 seconds
 
     public enum DamageType {
-        NORMAL(0xFF5555), // Red
-        CRITICAL(0xFFAA00), // Orange
-        HEALING(0x55FF55), // Green
-        TRUE_DAMAGE(0xAA00AA), // Purple
-        ENVIRONMENTAL(0x555555); // Gray
+        NORMAL(0xFFFF5555), // Bright Red
+        CRITICAL(0xFFFFAA00), // Bright Orange
+        HEALING(0xFF55FF55), // Bright Green
+        TRUE_DAMAGE(0xFFAA00AA), // Purple
+        ENVIRONMENTAL(0xFF888888); // Gray
 
         public final int color;
 

@@ -7,8 +7,12 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
+import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.RenderTickCounter;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Vec3d;
+import org.joml.Matrix4f;
+import org.joml.Vector4f;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.Mixin;
@@ -38,7 +42,7 @@ public class DamageNumberRenderMixin {
             // Check if we have any damage numbers to render
             int totalDamageNumbers = DamageNumberManager.getTotalDamageNumberCount();
             if (totalDamageNumbers > 0) {
-                LOGGER.info("Rendering {} damage numbers on HUD", totalDamageNumbers);
+                LOGGER.debug("Rendering {} damage numbers on HUD", totalDamageNumbers);
                 renderDamageNumbers(context, client);
             }
 
@@ -49,17 +53,12 @@ public class DamageNumberRenderMixin {
     private void renderDamageNumbers(DrawContext context, MinecraftClient client) {
         TextRenderer textRenderer = client.textRenderer;
         
-        int renderedCount = 0;
         DamageNumberManager.getAllDamageNumbers().values().forEach(damageNumberList -> {
             for (DamageNumber damageNumber : damageNumberList) {
-                LOGGER.info("Attempting to render damage number: {} at {}", damageNumber.getDamageText(), damageNumber.currentPosition);
+                LOGGER.debug("Attempting to render damage number: {} at {}", damageNumber.getDamageText(), damageNumber.currentPosition);
                 renderDamageNumber(context, damageNumber, textRenderer, client);
             }
         });
-        
-        if (renderedCount > 0) {
-            LOGGER.info("Successfully rendered {} damage numbers", renderedCount);
-        }
     }
 
     private void renderDamageNumber(DrawContext context, DamageNumber damageNumber,
@@ -84,6 +83,16 @@ public class DamageNumberRenderMixin {
             int x = (int) screenPos.x;
             int y = (int) screenPos.y;
 
+            // Apply distance-based scaling for text size
+            float scale = 1.0f;
+            if (distance > 5.0) {
+                // Gradually decrease size with distance
+                scale = (float) Math.max(0.6f, 1.0f - (distance - 5.0) / 45.0);
+            }
+            
+            // Apply animation scaling
+            scale *= damageNumber.scale;
+            
             // Create text
             String damageText = damageNumber.getDamageText();
 
@@ -91,19 +100,33 @@ public class DamageNumberRenderMixin {
             int textWidth = textRenderer.getWidth(damageText);
 
             // Apply alpha and color
-            int alpha = (int) (damageNumber.alpha * 255);
+            int alpha = Math.max(128, (int) (damageNumber.alpha * 255)); // Ensure minimum visibility
             int color = (alpha << 24) | (damageNumber.damageType.color & 0xFFFFFF);
 
-            // Render text with outline for better visibility
-            context.drawText(textRenderer, damageText, x - textWidth / 2 - 1, y - 1, 0x000000, false);
-            context.drawText(textRenderer, damageText, x - textWidth / 2 + 1, y - 1, 0x000000, false);
-            context.drawText(textRenderer, damageText, x - textWidth / 2 - 1, y + 1, 0x000000, false);
-            context.drawText(textRenderer, damageText, x - textWidth / 2 + 1, y + 1, 0x000000, false);
+            // Save the current matrix state
+            context.getMatrices().push();
+            
+            // Apply the scaling
+            context.getMatrices().scale(scale, scale, 1.0f);
+            float scaledX = x / scale;
+            float scaledY = y / scale;
+            
+            // Render text with thick black outline for better visibility
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
+                    if (dx != 0 || dy != 0) {
+                        context.drawText(textRenderer, damageText, (int)(scaledX - textWidth / 2) + dx, (int)scaledY + dy, 0xFF000000, false);
+                    }
+                }
+            }
             
             // Render main text
-            context.drawText(textRenderer, damageText, x - textWidth / 2, y, color, false);
+            context.drawText(textRenderer, damageText, (int)(scaledX - textWidth / 2), (int)scaledY, color, false);
+            
+            // Restore the matrix state
+            context.getMatrices().pop();
 
-            LOGGER.info("Rendered damage number '{}' at screen position ({}, {})", damageText, x, y);
+            // LOGGER.debug("Rendered damage number '{}' at screen position ({}, {})", damageText, x, y);
 
         } catch (Exception e) {
             LOGGER.error("Error rendering individual damage number: {}", e.getMessage());
@@ -112,27 +135,75 @@ public class DamageNumberRenderMixin {
 
     private Vec3d worldToScreen(Vec3d worldPos, MinecraftClient client) {
         try {
-            // Get camera position and transformation matrices
-            Vec3d cameraPos = client.gameRenderer.getCamera().getPos();
-            
-            // Simple approach: project relative position to screen center
+            Camera camera = client.gameRenderer.getCamera();
+            if (camera == null) {
+                return null;
+            }
+
+            // Get camera position and orientation
+            Vec3d cameraPos = camera.getPos();
+            float pitch = camera.getPitch();
+            float yaw = camera.getYaw();
+
+            // Calculate relative position from camera to world position
             Vec3d relative = worldPos.subtract(cameraPos);
-            
-            // Basic distance-based positioning (simplified)
             double distance = relative.length();
-            if (distance > 50 || distance < 1) {
+            
+            // Don't render if too far or too close
+            if (distance > 50.0 || distance < 0.5) {
+                return null;
+            }
+
+            // Get projection and model-view matrices
+            MatrixStack matrixStack = new MatrixStack();
+            Matrix4f projectionMatrix = client.gameRenderer.getBasicProjectionMatrix(70.0f); // Use standard FOV
+            
+            // Create model-view matrix based on camera rotation
+            org.joml.Quaternionf pitchRotation = new org.joml.Quaternionf().rotateX((float)Math.toRadians(pitch));
+            org.joml.Quaternionf yawRotation = new org.joml.Quaternionf().rotateY((float)Math.toRadians(yaw + 180));
+            
+            matrixStack.multiply(pitchRotation); // Pitch rotation
+            matrixStack.multiply(yawRotation);   // Yaw rotation
+            Matrix4f modelViewMatrix = matrixStack.peek().getPositionMatrix();
+
+            // Transform world position to camera space
+            Vector4f worldVector = new Vector4f((float) relative.x, (float) relative.y, (float) relative.z, 1.0f);
+            Vector4f cameraSpace = new Vector4f();
+            modelViewMatrix.transform(worldVector, cameraSpace);
+
+            // Check if behind camera
+            if (cameraSpace.z > 0) {
+                return null;
+            }
+
+            // Project to normalized device coordinates
+            Vector4f clipSpace = new Vector4f();
+            projectionMatrix.transform(cameraSpace, clipSpace);
+
+            // Perform perspective divide
+            if (clipSpace.w == 0) {
                 return null;
             }
             
-            // Project to screen coordinates (simplified approach)
+            float ndcX = clipSpace.x / clipSpace.w;
+            float ndcY = clipSpace.y / clipSpace.w;
+            float ndcZ = clipSpace.z / clipSpace.w;
+
+            // Check if within view frustum
+            if (Math.abs(ndcX) > 1.0f || Math.abs(ndcY) > 1.0f || ndcZ < -1.0f || ndcZ > 1.0f) {
+                return null;
+            }
+
+            // Convert to screen coordinates
             int screenWidth = client.getWindow().getScaledWidth();
             int screenHeight = client.getWindow().getScaledHeight();
             
-            // Place near screen center with some offset based on relative position
-            int x = screenWidth / 2 + (int) (relative.x * 10);
-            int y = screenHeight / 2 - (int) (relative.y * 10);
+            int screenX = (int) ((ndcX + 1.0f) * 0.5f * screenWidth);
+            int screenY = (int) ((1.0f - ndcY) * 0.5f * screenHeight);
+
+            // LOGGER.debug("World pos {} -> Screen pos ({}, {}) at distance {}", worldPos, screenX, screenY, distance);
             
-            return new Vec3d(x, y, 0);
+            return new Vec3d(screenX, screenY, distance);
             
         } catch (Exception e) {
             LOGGER.error("Error in worldToScreen conversion: {}", e.getMessage());

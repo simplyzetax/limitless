@@ -37,10 +37,19 @@ public class DamageNumberMixin {
             if (newHealth < currentHealth) {
                 float damage = currentHealth - newHealth;
                 
-                // Add damage number with NORMAL type since we don't have damage source info here
-                DamageNumberManager.addDamageNumber(entity, damage, DamageNumber.DamageType.NORMAL);
+                // Determine if this might be a critical hit (simple heuristic)
+                DamageNumber.DamageType damageType = DamageNumber.DamageType.NORMAL;
+                
+                // Check if this entity is a player and if the damage seems unusually high
+                // This is a simple heuristic since we don't have access to the damage source here
+                if (damage > 6.0f) { // Assume damage > 6 might be critical
+                    damageType = DamageNumber.DamageType.CRITICAL;
+                }
+                
+                // Add damage number
+                DamageNumberManager.addDamageNumber(entity, damage, damageType);
 
-                LOGGER.info("Health change detected: {} damage to {}", damage,
+                LOGGER.debug("Health change detected: {} damage to {}", damage,
                         entity.getType().getTranslationKey());
             }
             // Check for healing
@@ -50,7 +59,7 @@ public class DamageNumberMixin {
                 // Add healing number
                 DamageNumberManager.addDamageNumber(entity, healing, DamageNumber.DamageType.HEALING);
 
-                LOGGER.info("Healing detected: {} to {}", healing, entity.getType().getTranslationKey());
+                LOGGER.debug("Healing detected: {} to {}", healing, entity.getType().getTranslationKey());
             }
 
         } catch (Exception e) {
