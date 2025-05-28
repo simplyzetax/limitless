@@ -108,6 +108,38 @@ public class SettingsGUI extends BaseOwoScreen<FlowLayout> {
 
                 buttonContainer.child(
                                 Components.button(
+                                                // Initialize the button text with the current value of the config
+                                                Text.literal("Show Bow Trajectory: ")
+                                                                .append(Text.literal(
+                                                                                ClientConfig.ShowBowTrajectory ? "✔"
+                                                                                                : "✖")
+                                                                                .styled(style -> style.withColor(
+                                                                                                ClientConfig.ShowBowTrajectory
+                                                                                                                ? Formatting.GREEN
+                                                                                                                : Formatting.RED))),
+                                                button -> {
+                                                        // Toggle the configuration value
+                                                        ClientConfig.ShowBowTrajectory = !ClientConfig.ShowBowTrajectory;
+
+                                                        // Update the button label
+                                                        button.setMessage(
+                                                                        Text.literal("Show Bow Trajectory: ")
+                                                                                        .append(Text.literal(
+                                                                                                        ClientConfig.ShowBowTrajectory
+                                                                                                                        ? "✔"
+                                                                                                                        : "✖")
+                                                                                                        .styled(style -> style
+                                                                                                                        .withColor(ClientConfig.ShowBowTrajectory
+                                                                                                                                        ? Formatting.GREEN
+                                                                                                                                        : Formatting.RED))));
+                                                })
+                                                .horizontalSizing(Sizing.fixed(180)) // Adjust the button width
+                                                .tooltip(Text.literal(
+                                                                "Toggles the display of bow trajectory predictions when aiming with a bow.")
+                                                                .styled(style -> style.withColor(Formatting.GRAY))));
+
+                buttonContainer.child(
+                                Components.button(
                                                 Text.literal("Clear Stolen Items")
                                                                 .styled(style -> style.withColor(Formatting.GOLD)),
                                                 button -> {

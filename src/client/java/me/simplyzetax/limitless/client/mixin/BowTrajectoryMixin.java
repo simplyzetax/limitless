@@ -1,5 +1,6 @@
 package me.simplyzetax.limitless.client.mixin;
 
+import me.simplyzetax.limitless.client.config.ClientConfig;
 import me.simplyzetax.limitless.client.render.BowTrajectoryData;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -41,6 +42,14 @@ public class BowTrajectoryMixin {
 
         // Only show trajectory for the local client player
         if (client.player != player || client.world == null) {
+            return;
+        }
+
+        // Check if bow trajectory is enabled in config
+        if (!ClientConfig.ShowBowTrajectory) {
+            BowTrajectoryData.clearTrajectory();
+            trajectoryUpdateCounter = 0;
+            lastPlayerRotation = null;
             return;
         }
 
