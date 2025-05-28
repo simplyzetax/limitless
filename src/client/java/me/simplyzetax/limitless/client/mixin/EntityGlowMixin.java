@@ -38,11 +38,11 @@ public class EntityGlowMixin {
                     }
                 }
             }
-            
+
             // Handle arrow glowing for threatening arrows
             if (entity instanceof ArrowEntity) {
                 ArrowEntity arrow = (ArrowEntity) entity;
-                
+
                 // Additional null checks for arrow properties
                 if (arrow.getUuid() != null && arrow.getWorld() != null) {
                     // Check if this arrow is marked as threatening

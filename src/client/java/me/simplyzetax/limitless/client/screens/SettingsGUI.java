@@ -172,6 +172,38 @@ public class SettingsGUI extends BaseOwoScreen<FlowLayout> {
 
                 buttonContainer.child(
                                 Components.button(
+                                                // Initialize the button text with the current value of the config
+                                                Text.literal("Show Damage Numbers: ")
+                                                                .append(Text.literal(
+                                                                                ClientConfig.ShowDamageNumbers ? "✔"
+                                                                                                : "✖")
+                                                                                .styled(style -> style.withColor(
+                                                                                                ClientConfig.ShowDamageNumbers
+                                                                                                                ? Formatting.GREEN
+                                                                                                                : Formatting.RED))),
+                                                button -> {
+                                                        // Toggle the configuration value
+                                                        ClientConfig.ShowDamageNumbers = !ClientConfig.ShowDamageNumbers;
+
+                                                        // Update the button label
+                                                        button.setMessage(
+                                                                        Text.literal("Show Damage Numbers: ")
+                                                                                        .append(Text.literal(
+                                                                                                        ClientConfig.ShowDamageNumbers
+                                                                                                                        ? "✔"
+                                                                                                                        : "✖")
+                                                                                                        .styled(style -> style
+                                                                                                                        .withColor(ClientConfig.ShowDamageNumbers
+                                                                                                                                        ? Formatting.GREEN
+                                                                                                                                        : Formatting.RED))));
+                                                })
+                                                .horizontalSizing(Sizing.fixed(180)) // Adjust the button width
+                                                .tooltip(Text.literal(
+                                                                "Displays floating damage numbers above entities when they take damage or heal.")
+                                                                .styled(style -> style.withColor(Formatting.GRAY))));
+
+                buttonContainer.child(
+                                Components.button(
                                                 Text.literal("Clear Stolen Items")
                                                                 .styled(style -> style.withColor(Formatting.GOLD)),
                                                 button -> {

@@ -7,4 +7,5 @@ public class ClientConfig {
     public static boolean PlayersShouldGlow = false;
     public static boolean ShowBowTrajectory = false;
     public static boolean EnableArrowDodging = false;
+    public static boolean ShowDamageNumbers = true;
 }

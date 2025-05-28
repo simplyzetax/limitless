@@ -12,7 +12,9 @@
     "CreativeInventoryDropMixin",
     "CreativeInventorySlotClickMixin",
     "BowTrajectoryMixin",
-    "ArrowDodgeMixin"
+    "ArrowDodgeMixin",
+    "DamageNumberMixin",
+    "DamageNumberRenderMixin"
   ],
   "injectors": {
     "defaultRequire": 1
