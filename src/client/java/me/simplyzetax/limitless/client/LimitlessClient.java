@@ -1,8 +1,8 @@
 package me.simplyzetax.limitless.client;
 
-import me.simplyzetax.limitless.client.config.ClientConfig;
-import me.simplyzetax.limitless.client.render.BowTrajectoryRenderer;
-import me.simplyzetax.limitless.client.screens.SettingsGUI;
+import me.simplyzetax.limitless.client.shared.config.ClientConfig;
+import me.simplyzetax.limitless.client.features.gui.screens.SettingsGUI;
+import me.simplyzetax.limitless.client.features.core.FeatureManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.resource.featuretoggle.FeatureFlags;
 import net.minecraft.resource.featuretoggle.FeatureSet;
@@ -28,6 +28,9 @@ public class LimitlessClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         LOGGER.info("Limitless Client Initialized (client-side only)!");
+
+        // Initialize all features using FeatureManager
+        FeatureManager.initializeAllFeatures();
 
         // Register the right shift keybinding
         rshiftBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
@@ -73,7 +76,5 @@ public class LimitlessClient implements ClientModInitializer {
                 ClientConfig.PlayersShouldGlow = !ClientConfig.PlayersShouldGlow;
             }
         });
-
-        BowTrajectoryRenderer.register();
     }
 }

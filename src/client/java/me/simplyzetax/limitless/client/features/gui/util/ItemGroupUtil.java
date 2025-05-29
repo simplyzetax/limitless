@@ -1,5 +1,5 @@
-// src/client/java/me/simplyzetax/limitless/client/ItemGroupUtil.java
-package me.simplyzetax.limitless.client;
+// src/client/java/me/simplyzetax/limitless/client/features/gui/util/ItemGroupUtil.java
+package me.simplyzetax.limitless.client.features.gui.util;
 
 import me.simplyzetax.limitless.client.features.itemstealing.managers.LimitlessItemGroupManager;
 import me.simplyzetax.limitless.client.features.shulkerboxes.managers.ShulkerBoxItemGroupManager;

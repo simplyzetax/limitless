@@ -1,20 +1,22 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "me.simplyzetax.limitless.client.mixin",
+  "package": "me.simplyzetax.limitless.client.mixins",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "ClientPlayNetworkHandlerMixin",
-    "PlayerListHudMixin",
-    "EntityGlowMixin",
-    "ShulkerBoxPlacementMixin",
-    "ShulkerBoxInteractionMixin",
-    "CreativeInventoryDropMixin",
-    "CreativeInventorySlotClickMixin",
-    "BowTrajectoryMixin",
-    "ArrowDodgeMixin",
-    "DamageNumberMixin",
-    "DamageNumberRenderMixin"
+    "itemstealing.ClientPlayNetworkHandlerMixin",
+    "itemstealing.CreativeInventoryInteractionMixin",
+    "itemstealing.CreativeInventoryDropMixin",
+    "itemstealing.CreativeInventorySlotClickMixin",
+    "glowing.PlayerListHudMixin",
+    "glowing.EntityGlowMixin",
+    "shulkerboxes.ShulkerBoxPlacementMixin",
+    "shulkerboxes.ShulkerBoxInteractionMixin",
+    "bowtrajectory.BowTrajectoryMixin",
+    "arrowdodge.ArrowDodgeMixin",
+    "arrowdodge.ArrowGlowMixin",
+    "damagenumbers.DamageNumberMixin",
+    "damagenumbers.DamageNumberRenderMixin"
   ],
   "injectors": {
     "defaultRequire": 1
