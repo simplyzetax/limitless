@@ -53,6 +53,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/libs/limitless-1.0-SNAPSHOT.jar  # Match this to the actual jar name
+          asset_path: build/libs/limitless-1.2.jar  # Match this to the actual jar name
           asset_name: limitless-${{ github.run_number }}.jar
           asset_content_type: application/java-archive
