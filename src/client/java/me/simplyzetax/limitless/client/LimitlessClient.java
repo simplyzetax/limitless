@@ -3,6 +3,7 @@ package me.simplyzetax.limitless.client;
 import me.simplyzetax.limitless.client.shared.config.ClientConfig;
 import me.simplyzetax.limitless.client.features.gui.screens.SettingsGUI;
 import me.simplyzetax.limitless.client.features.core.FeatureManager;
+import me.simplyzetax.limitless.client.features.zoom.util.ZoomManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.resource.featuretoggle.FeatureFlags;
 import net.minecraft.resource.featuretoggle.FeatureSet;
@@ -24,6 +25,7 @@ public class LimitlessClient implements ClientModInitializer {
 
     private static KeyBinding rshiftBinding;
     private static KeyBinding gBinding;
+    private static KeyBinding zoomBinding;
 
     @Override
     public void onInitializeClient() {
@@ -44,6 +46,13 @@ public class LimitlessClient implements ClientModInitializer {
                 "key.limitless.g", // Translation key
                 InputUtil.Type.KEYSYM, // Input type
                 InputUtil.GLFW_KEY_G, // G key
+                "category.limitless.general" // Category translation key
+        ));
+
+        zoomBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.limitless.zoom", // Translation key
+                InputUtil.Type.KEYSYM, // Input type
+                InputUtil.GLFW_KEY_C, // C key (like OptiFine)
                 "category.limitless.general" // Category translation key
         ));
 
@@ -74,6 +83,9 @@ public class LimitlessClient implements ClientModInitializer {
                 }
 
                 ClientConfig.PlayersShouldGlow = !ClientConfig.PlayersShouldGlow;
+            }
+            while (zoomBinding.wasPressed()) {
+                ZoomManager.toggleZoom();
             }
         });
     }

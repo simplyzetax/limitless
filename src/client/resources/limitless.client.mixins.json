@@ -16,7 +16,10 @@
     "arrowdodge.ArrowDodgeMixin",
     "arrowdodge.ArrowGlowMixin",
     "damagenumbers.DamageNumberMixin",
-    "damagenumbers.DamageNumberRenderMixin"
+    "damagenumbers.DamageNumberRenderMixin",
+    "zoom.ZoomMixin",
+    "zoom.ZoomScrollMixin",
+    "zoom.ZoomMouseSensitivityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -39,4 +39,13 @@ public class ClientConfig {
     // ================================
     public static boolean ShowDamageNumbers = true;
     public static String DamageNumberFont = "default"; // Options: "default", "uniform", "alt", "compact"
+
+    // ================================
+    // Zoom Feature Settings
+    // ================================
+    public static boolean EnableZoom = true;
+    public static float ZoomLevel = 3.0f; // Default zoom level (OptiFine-like, higher = more zoomed)
+    public static float MinZoomLevel = 1.5f; // Minimum zoom level
+    public static float MaxZoomLevel = 10.0f; // Maximum zoom level
+    public static float ZoomScrollSensitivity = 0.5f; // How much mouse wheel affects zoom
 }
