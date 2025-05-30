@@ -28,7 +28,6 @@ jobs:
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
-        uses: actions/download-artifact@v4
         with:
           name: build-jar
           path: build/libs/limitless-1.0-SNAPSHOT.jar  # Update this to match the actual jar file name
