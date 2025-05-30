@@ -53,6 +53,7 @@ This mod is all about experimentation and fun! I add features that:
 - Implement cool mechanics I think would be interesting
 - Provide useful tools for creative and survival gameplay
 - Are technically challenging and fun to code
+- A personal one, but some people may not like this: I am using a lot of AI generated code in this because I am just starting to learn proper Java. I always try to learn what it writes for me when I use it, but I want to be honest about this
 
 **Got an idea?** Feel free to suggest features! This is a playground mod where anything goes.
 
