@@ -34,11 +34,6 @@
 - **Multiple Types**: Different colors for normal, critical, healing, and environmental damage
 - **Customizable Fonts**: Choose from different font styles for damage display
 
-### 🔍 Zoom Feature
-- **Dynamic Zoom**: Smooth zoom functionality similar to OptiFine
-- **Configurable Levels**: Adjustable zoom sensitivity and range
-- **Mouse Sensitivity**: Smart mouse sensitivity scaling for precision
-
 ### ⚙️ Settings GUI
 - **In-Game Configuration**: Easy-to-use settings interface
 - **Feature Toggles**: Enable/disable any feature on the fly
@@ -80,7 +75,6 @@ This mod is all about experimentation and fun! I add features that:
 - **Damage Numbers**: See floating damage numbers on entities
 
 ### Utility Features
-- **Zoom**: Use configurable zoom keybind (similar to OptiFine)
 - **Entity Glowing**: Toggle player/entity glowing effects
 - **Settings GUI**: Access in-game configuration panel
 

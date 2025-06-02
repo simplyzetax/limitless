@@ -29,7 +29,8 @@ public class DamageNumberRenderMixin {
 
     @Inject(method = "render", at = @At("TAIL"))
     private void onRender(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
-        if (!ClientConfig.ShowDamageNumbers) {
+        // Check both feature-level and specific setting flags
+        if (!ClientConfig.EnableDamageNumbersFeature || !ClientConfig.ShowDamageNumbers) {
             return;
         }
 

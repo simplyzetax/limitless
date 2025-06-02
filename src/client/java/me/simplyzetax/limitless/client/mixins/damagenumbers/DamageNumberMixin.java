@@ -24,7 +24,8 @@ public class DamageNumberMixin {
             return;
         }
 
-        if (!ClientConfig.ShowDamageNumbers) {
+        // Check both feature-level and specific setting flags
+        if (!ClientConfig.EnableDamageNumbersFeature || !ClientConfig.ShowDamageNumbers) {
             return;
         }
 

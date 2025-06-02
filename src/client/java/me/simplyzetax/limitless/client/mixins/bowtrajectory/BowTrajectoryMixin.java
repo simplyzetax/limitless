@@ -45,8 +45,8 @@ public class BowTrajectoryMixin {
             return;
         }
 
-        // Check if bow trajectory is enabled in config
-        if (!ClientConfig.ShowBowTrajectory) {
+        // Check both feature-level and specific setting flags
+        if (!ClientConfig.EnableBowTrajectoryFeature || !ClientConfig.ShowBowTrajectory) {
             BowTrajectoryData.clearTrajectory();
             trajectoryUpdateCounter = 0;
             lastPlayerRotation = null;

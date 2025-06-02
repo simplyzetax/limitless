@@ -16,7 +16,6 @@ import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.lang.reflect.Field;
@@ -155,11 +154,33 @@ public class CreativeInventoryInteractionMixin {
     private void initializeReflection() {
         if (!fieldInitialized) {
             try {
-                selectedTabField = CreativeInventoryScreen.class.getDeclaredField("selectedTab");
-                selectedTabField.setAccessible(true);
+                Class<?> creativeScreenClass = CreativeInventoryScreen.class;
 
-                focusedSlotField = CreativeInventoryScreen.class.getDeclaredField("focusedSlot");
-                focusedSlotField.setAccessible(true);
+                // Try different possible field names for the selected tab
+                String[] possibleTabFieldNames = { "selectedTab", "field_2897", "f_98593_", "currentTab" };
+                String[] possibleSlotFieldNames = { "focusedSlot", "field_2322", "f_96571_", "hoveredSlot" };
+
+                for (String fieldName : possibleTabFieldNames) {
+                    try {
+                        selectedTabField = creativeScreenClass.getDeclaredField(fieldName);
+                        selectedTabField.setAccessible(true);
+                        break;
+                    } catch (NoSuchFieldException ignored) {
+                        // Try next field name
+                    }
+                }
+
+                // Look in parent class for focused slot
+                Class<?> parentClass = creativeScreenClass.getSuperclass();
+                for (String fieldName : possibleSlotFieldNames) {
+                    try {
+                        focusedSlotField = parentClass.getDeclaredField(fieldName);
+                        focusedSlotField.setAccessible(true);
+                        break;
+                    } catch (NoSuchFieldException ignored) {
+                        // Try next field name
+                    }
+                }
 
                 fieldInitialized = true;
                 Limitless.LOGGER.debug("Successfully initialized reflection fields for CreativeInventoryScreen");

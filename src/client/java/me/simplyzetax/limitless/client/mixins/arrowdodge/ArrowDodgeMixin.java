@@ -56,7 +56,8 @@ public class ArrowDodgeMixin {
             return;
         }
 
-        if (!ClientConfig.EnableArrowDodging) {
+        // Check both feature-level and specific setting flags
+        if (!ClientConfig.EnableArrowDodgeFeature || !ClientConfig.EnableArrowDodging) {
             return;
         }
 

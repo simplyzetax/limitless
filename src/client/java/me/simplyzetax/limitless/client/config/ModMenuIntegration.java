@@ -125,7 +125,7 @@ public class ModMenuIntegration implements ModMenuApi {
                 combatCategory.addEntry(entryBuilder
                                 .startBooleanToggle(Text.translatable("config.limitless.combat.enable_arrow_dodging"),
                                                 ClientConfig.EnableArrowDodging)
-                                .setDefaultValue(false)
+                                .setDefaultValue(true)
                                 .setTooltip(Text.translatable("config.limitless.combat.enable_arrow_dodging.tooltip"))
                                 .setSaveConsumer(newValue -> ClientConfig.EnableArrowDodging = newValue)
                                 .build());
@@ -149,58 +149,6 @@ public class ModMenuIntegration implements ModMenuApi {
                                 .setSaveConsumer(
                                                 fontOption -> ClientConfig.DamageNumberFont = ((DamageFontManager.FontOption) fontOption)
                                                                 .getKey())
-                                .build());
-
-                // Zoom Settings Category
-                ConfigCategory zoomCategory = builder
-                                .getOrCreateCategory(Text.translatable("config.limitless.category.zoom"));
-
-                zoomCategory.addEntry(entryBuilder
-                                .startBooleanToggle(Text.translatable("config.limitless.zoom.enable_zoom"),
-                                                ClientConfig.EnableZoom)
-                                .setDefaultValue(true)
-                                .setTooltip(Text.translatable("config.limitless.zoom.enable_zoom.tooltip"))
-                                .setSaveConsumer(newValue -> ClientConfig.EnableZoom = newValue)
-                                .build());
-
-                zoomCategory.addEntry(entryBuilder
-                                .startFloatField(Text.translatable("config.limitless.zoom.zoom_level"),
-                                                ClientConfig.ZoomLevel)
-                                .setDefaultValue(3.0f)
-                                .setMin(1.0f)
-                                .setMax(20.0f)
-                                .setTooltip(Text.translatable("config.limitless.zoom.zoom_level.tooltip"))
-                                .setSaveConsumer(newValue -> ClientConfig.ZoomLevel = newValue)
-                                .build());
-
-                zoomCategory.addEntry(entryBuilder
-                                .startFloatField(Text.translatable("config.limitless.zoom.min_zoom_level"),
-                                                ClientConfig.MinZoomLevel)
-                                .setDefaultValue(1.5f)
-                                .setMin(1.0f)
-                                .setMax(10.0f)
-                                .setTooltip(Text.translatable("config.limitless.zoom.min_zoom_level.tooltip"))
-                                .setSaveConsumer(newValue -> ClientConfig.MinZoomLevel = newValue)
-                                .build());
-
-                zoomCategory.addEntry(entryBuilder
-                                .startFloatField(Text.translatable("config.limitless.zoom.max_zoom_level"),
-                                                ClientConfig.MaxZoomLevel)
-                                .setDefaultValue(10.0f)
-                                .setMin(2.0f)
-                                .setMax(50.0f)
-                                .setTooltip(Text.translatable("config.limitless.zoom.max_zoom_level.tooltip"))
-                                .setSaveConsumer(newValue -> ClientConfig.MaxZoomLevel = newValue)
-                                .build());
-
-                zoomCategory.addEntry(entryBuilder
-                                .startFloatField(Text.translatable("config.limitless.zoom.scroll_sensitivity"),
-                                                ClientConfig.ZoomScrollSensitivity)
-                                .setDefaultValue(0.5f)
-                                .setMin(0.1f)
-                                .setMax(2.0f)
-                                .setTooltip(Text.translatable("config.limitless.zoom.scroll_sensitivity.tooltip"))
-                                .setSaveConsumer(newValue -> ClientConfig.ZoomScrollSensitivity = newValue)
                                 .build());
 
                 return builder.build();
