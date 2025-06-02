@@ -2,7 +2,6 @@ package me.simplyzetax.limitless.client;
 
 import me.simplyzetax.limitless.client.shared.config.ClientConfig;
 import me.simplyzetax.limitless.client.features.core.FeatureManager;
-import me.simplyzetax.limitless.client.features.zoom.util.ZoomManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.resource.featuretoggle.FeatureFlags;
 import net.minecraft.resource.featuretoggle.FeatureSet;
@@ -24,7 +23,6 @@ public class LimitlessClient implements ClientModInitializer {
 
     private static KeyBinding rshiftBinding;
     private static KeyBinding gBinding;
-    private static KeyBinding zoomBinding;
 
     @Override
     public void onInitializeClient() {
@@ -48,13 +46,6 @@ public class LimitlessClient implements ClientModInitializer {
                 "category.limitless.general" // Category translation key
         ));
 
-        zoomBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key.limitless.zoom", // Translation key
-                InputUtil.Type.KEYSYM, // Input type
-                InputUtil.GLFW_KEY_C, // C key (like OptiFine)
-                "category.limitless.general" // Category translation key
-        ));
-
         // Register the tick event to check for key presses
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (rshiftBinding.wasPressed()) {
@@ -63,7 +54,9 @@ public class LimitlessClient implements ClientModInitializer {
 
                 // Show message about Mod Menu instead of opening custom GUI
                 if (client.player != null) {
-                    client.player.sendMessage(net.minecraft.text.Text.literal("§6Limitless settings are now available through Mod Menu! §7(Install Mod Menu mod to access)"), false);
+                    client.player.sendMessage(net.minecraft.text.Text.literal(
+                            "§6Limitless settings are now available through Mod Menu! §7(Install Mod Menu mod to access)"),
+                            false);
                 }
             }
             while (gBinding.wasPressed()) {
@@ -79,9 +72,6 @@ public class LimitlessClient implements ClientModInitializer {
                 }
 
                 ClientConfig.PlayersShouldGlow = !ClientConfig.PlayersShouldGlow;
-            }
-            while (zoomBinding.wasPressed()) {
-                ZoomManager.toggleZoom();
             }
         });
     }
