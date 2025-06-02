@@ -117,7 +117,7 @@ public class ModMenuIntegration implements ModMenuApi {
                 combatCategory.addEntry(entryBuilder
                                 .startBooleanToggle(Text.translatable("config.limitless.combat.show_bow_trajectory"),
                                                 ClientConfig.ShowBowTrajectory)
-                                .setDefaultValue(false)
+                                .setDefaultValue(true)
                                 .setTooltip(Text.translatable("config.limitless.combat.show_bow_trajectory.tooltip"))
                                 .setSaveConsumer(newValue -> ClientConfig.ShowBowTrajectory = newValue)
                                 .build());

@@ -26,7 +26,7 @@ public class ClientConfig {
     // ================================
     // Bow Trajectory Feature Settings
     // ================================
-    public static boolean ShowBowTrajectory = false;
+    public static boolean ShowBowTrajectory = true;
 
     // ================================
     // Arrow Dodge Feature Settings
