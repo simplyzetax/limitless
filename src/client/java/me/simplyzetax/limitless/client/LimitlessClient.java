@@ -1,7 +1,6 @@
 package me.simplyzetax.limitless.client;
 
 import me.simplyzetax.limitless.client.shared.config.ClientConfig;
-import me.simplyzetax.limitless.client.features.gui.screens.SettingsGUI;
 import me.simplyzetax.limitless.client.features.core.FeatureManager;
 import me.simplyzetax.limitless.client.features.zoom.util.ZoomManager;
 import net.minecraft.entity.player.PlayerEntity;
@@ -34,7 +33,7 @@ public class LimitlessClient implements ClientModInitializer {
         // Initialize all features using FeatureManager
         FeatureManager.initializeAllFeatures();
 
-        // Register the right shift keybinding
+        // Register the right shift keybinding (now shows info message about Mod Menu)
         rshiftBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.limitless.rshift", // Translation key
                 InputUtil.Type.KEYSYM, // Input type
@@ -56,18 +55,15 @@ public class LimitlessClient implements ClientModInitializer {
                 "category.limitless.general" // Category translation key
         ));
 
-        // Register the tick event to check for right shift presses
+        // Register the tick event to check for key presses
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (rshiftBinding.wasPressed()) {
                 // This code runs when right shift is pressed
                 LOGGER.info("Right shift pressed!");
 
-                // Add your right shift handling logic here
+                // Show message about Mod Menu instead of opening custom GUI
                 if (client.player != null) {
-
-                    // Example: Do something with the player
-                    MinecraftClient.getInstance().setScreen(new SettingsGUI());
-
+                    client.player.sendMessage(net.minecraft.text.Text.literal("§6Limitless settings are now available through Mod Menu! §7(Install Mod Menu mod to access)"), false);
                 }
             }
             while (gBinding.wasPressed()) {

@@ -11,7 +11,6 @@ public class ClientConfig {
     public static boolean EnableBowTrajectoryFeature = true;
     public static boolean EnableArrowDodgeFeature = true;
     public static boolean EnableDamageNumbersFeature = true;
-    public static boolean EnableGuiFeature = true;
 
     // ================================
     // Item Stealing Feature Settings
