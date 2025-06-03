@@ -4,7 +4,7 @@
   "package": "me.simplyzetax.limitless.client.mixins",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "itemstealing.ClientPlayNetworkHandlerMixin",
+    "itemstealing.ClientConnectionMixin",
     "itemstealing.CreativeInventoryInteractionMixin",
     "itemstealing.CreativeInventoryDropMixin",
     "itemstealing.CreativeInventorySlotClickMixin",

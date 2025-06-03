@@ -32,7 +32,7 @@ import java.util.List;
 
 @Environment(EnvType.CLIENT)
 @Mixin(ClientConnection.class) // Ensure this is the correct target class
-public class ClientPlayNetworkHandlerMixin {
+public class ClientConnectionMixin {
 
     /**
      * Checks if an equivalent ItemStack already exists in EQUIPPED_ITEMS.

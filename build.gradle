@@ -30,8 +30,14 @@ repositories {
     maven { url 'https://maven.wispforest.io/releases/' }
     maven { url 'https://maven.terraformersmc.com/releases/' }
     maven { url 'https://maven.shedaniel.me/' }
-    maven { url = uri("https://repo.codemc.io/repository/maven-releases/") }
-    maven { url = uri("https://repo.codemc.io/repository/maven-snapshots/") }
+    maven {
+        url = uri("https://repo.grim.ac/snapshots")
+        content {
+            includeGroup("ac.grim.grimac")
+            includeGroup("com.github.retrooper")
+        }
+    }
+    maven { url 'https://jitpack.io' }  // For GitHub dependencies like Fallen-Breath's conditional-mixin
 }
 
 dependencies {
@@ -49,7 +55,8 @@ dependencies {
     // Cloth Config for configuration screen
     modImplementation "me.shedaniel.cloth:cloth-config-fabric:18.0.145"
 
-    compileOnly("com.github.retrooper:packetevents-fabric:2.8.0")
+    modImplementation("com.github.retrooper:packetevents-fabric:2.8.1-SNAPSHOT")
+    include("com.github.retrooper:packetevents-fabric:2.8.1-SNAPSHOT")
 }
 
 processResources {

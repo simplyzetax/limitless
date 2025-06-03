@@ -1,6 +1,7 @@
 package me.simplyzetax.limitless.client;
 
 import me.simplyzetax.limitless.client.shared.config.ClientConfig;
+import me.simplyzetax.limitless.client.features.chat.ChatListener;
 import me.simplyzetax.limitless.client.features.core.FeatureManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.resource.featuretoggle.FeatureFlags;
@@ -17,8 +18,8 @@ import org.slf4j.LoggerFactory;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.PacketEventsAPI;
-
-import io.github.retrooper.packetevents.factory.fabric.FabricPacketEventsBuilder;
+import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import io.github.retrooper.packetevents.PacketEventsClientMod;
 
 public class LimitlessClient implements ClientModInitializer {
     public static final String MOD_ID = "limitless";
@@ -29,7 +30,6 @@ public class LimitlessClient implements ClientModInitializer {
     private static KeyBinding rshiftBinding;
     private static KeyBinding gBinding;
 
-    @SuppressWarnings({ "removal", "deprecation" })
     @Override
     public void onInitializeClient() {
         LOGGER.info("Limitless Client Initialized (client-side only)!");
@@ -87,6 +87,15 @@ public class LimitlessClient implements ClientModInitializer {
 
         if (api.isLoaded()) {
             LOGGER.info("PacketEvents API loaded successfully!");
+            
+            // Initialize PacketEvents
+            api.init();
+            LOGGER.info("PacketEvents API initialized successfully!");
+            
+            // Register the ChatListener
+            api.getEventManager().registerListener(
+                    new ChatListener(), PacketListenerPriority.NORMAL);
+            LOGGER.info("ChatListener registered successfully!");
         } else {
             LOGGER.error("Failed to load PacketEvents API!");
         }
