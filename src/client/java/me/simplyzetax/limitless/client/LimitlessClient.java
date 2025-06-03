@@ -15,6 +15,11 @@ import net.minecraft.client.util.InputUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.PacketEventsAPI;
+
+import io.github.retrooper.packetevents.factory.fabric.FabricPacketEventsBuilder;
+
 public class LimitlessClient implements ClientModInitializer {
     public static final String MOD_ID = "limitless";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
@@ -24,6 +29,7 @@ public class LimitlessClient implements ClientModInitializer {
     private static KeyBinding rshiftBinding;
     private static KeyBinding gBinding;
 
+    @SuppressWarnings({ "removal", "deprecation" })
     @Override
     public void onInitializeClient() {
         LOGGER.info("Limitless Client Initialized (client-side only)!");
@@ -74,5 +80,15 @@ public class LimitlessClient implements ClientModInitializer {
                 ClientConfig.PlayersShouldGlow = !ClientConfig.PlayersShouldGlow;
             }
         });
+
+        PacketEvents.setAPI(FabricPacketEventsBuilder.build(LimitlessClient.MOD_ID));
+        PacketEventsAPI<?> api = PacketEvents.getAPI();
+        api.load();
+
+        if (api.isLoaded()) {
+            LOGGER.info("PacketEvents API loaded successfully!");
+        } else {
+            LOGGER.error("Failed to load PacketEvents API!");
+        }
     }
 }
